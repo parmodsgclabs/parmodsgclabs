@@ -1,0 +1,405 @@
+# Copyright (C) 2024 SGC LABS®
+# This file is distributed under the GPL v2 or later.
+#
+# SGC Smart CRM Pro
+# Version: 1.0.0
+# https://labsglass.com
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: SGC Smart CRM Pro 1.0.0\n"
+"Report-Msgid-Bugs-To: https://labsglass.com\n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"X-Generator: WP-CLI 2.x\n"
+"X-Domain: sgc-smart-crm\n"
+
+#. Plugin Name of the plugin
+msgid "SGC Smart CRM Pro"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://labsglass.com"
+msgstr ""
+
+#. Description of the plugin
+msgid "AI-Powered B2B CRM — Contact management, CSV/Excel import, AI segmentation, email campaigns, WooCommerce & inquiry automation, weekly product promos."
+msgstr ""
+
+#. Author of the plugin
+msgid "SGC LABS®"
+msgstr ""
+
+msgid "SGC Smart CRM Pro requires PHP %1$s or higher. Your server is running PHP %2$s."
+msgstr ""
+
+msgid "SGC Smart CRM Pro requires WordPress %1$s or higher. You are running %2$s."
+msgstr ""
+
+msgid "Every 5 Minutes (SGC CRM)"
+msgstr ""
+
+msgid "Twice Weekly (SGC CRM)"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Contacts"
+msgstr ""
+
+msgid "📧 Smart CRM"
+msgstr ""
+
+msgid "SGC Smart CRM Pro"
+msgstr ""
+
+msgid "AI-Powered B2B CRM & Email Automation"
+msgstr ""
+
+msgid "📊 Dashboard"
+msgstr ""
+
+msgid "👥 Contacts"
+msgstr ""
+
+msgid "📨 Campaigns"
+msgstr ""
+
+msgid "⚡ Automation"
+msgstr ""
+
+msgid "🛍️ Products"
+msgstr ""
+
+msgid "⚙️ Settings"
+msgstr ""
+
+msgid "Insufficient permissions."
+msgstr ""
+
+msgid "No AI API key configured. Add one in SGC Smart CRM → Settings → AI Provider."
+msgstr ""
+
+msgid "%s is rate-limited. Please wait a moment."
+msgstr ""
+
+msgid "Unknown AI provider: %s"
+msgstr ""
+
+msgid "%s HTTP error: %s"
+msgstr ""
+
+msgid "Rate limited."
+msgstr ""
+
+msgid "%s: Invalid API key or unauthorized."
+msgstr ""
+
+msgid "%1$s API error %2$d: %3$s"
+msgstr ""
+
+msgid "%s returned an empty response."
+msgstr ""
+
+msgid "AI call failed after 3 attempts."
+msgstr ""
+
+msgid "No API key saved for this provider."
+msgstr ""
+
+msgid "Invalid provider."
+msgstr ""
+
+msgid "AI settings saved."
+msgstr ""
+
+msgid "%s connected successfully!"
+msgstr ""
+
+msgid "Option not permitted."
+msgstr ""
+
+msgid "Weekly promo scheduled. It will send momentarily."
+msgstr ""
+
+msgid "Only CSV and Excel (.xlsx/.xls) files are allowed."
+msgstr ""
+
+msgid "Invalid file upload."
+msgstr ""
+
+msgid "No data found in file. Check the format."
+msgstr ""
+
+msgid "Row %1$d: invalid email \"%2$s\""
+msgstr ""
+
+msgid "WooCommerce is not active."
+msgstr ""
+
+msgid "SGC LABS® inquiries table not found. Ensure SGC Manager Pro is active."
+msgstr ""
+
+msgid "Invalid email address."
+msgstr ""
+
+msgid "This email already exists."
+msgstr ""
+
+msgid "Invalid contact ID."
+msgstr ""
+
+msgid "Contact deleted."
+msgstr ""
+
+msgid "Saved."
+msgstr ""
+
+msgid "No contacts to segment."
+msgstr ""
+
+msgid "Valued Customer"
+msgstr ""
+
+msgid "Unsubscribe"
+msgstr ""
+
+msgid "Unsubscribed successfully."
+msgstr ""
+
+msgid "Unsubscribed"
+msgstr ""
+
+msgid "You have been removed from our mailing list."
+msgstr ""
+
+msgid "Invalid campaign ID."
+msgstr ""
+
+msgid "Campaign saved."
+msgstr ""
+
+msgid "Scheduled!"
+msgstr ""
+
+msgid "AI returned unexpected format. Please try again."
+msgstr ""
+
+msgid "%d emails queued. Sending in batches."
+msgstr ""
+
+msgid "Valid campaign ID and email required."
+msgstr ""
+
+msgid "Test email sent to %s"
+msgstr ""
+
+msgid "Send failed. Check SMTP / wp_mail() configuration."
+msgstr ""
+
+msgid "Campaign not found."
+msgstr ""
+
+msgid "No products selected."
+msgstr ""
+
+msgid "No valid products found."
+msgstr ""
+
+msgid "WooCommerce not active."
+msgstr ""
+
+msgid "SGC LABS® %s Picks — Featured Lab Glassware"
+msgstr ""
+
+msgid "New Campaign"
+msgstr ""
+
+msgid "No campaigns yet."
+msgstr ""
+
+msgid "Edit Campaign"
+msgstr ""
+
+msgid "Pick a date/time first."
+msgstr ""
+
+msgid "Save campaign first."
+msgstr ""
+
+msgid "New Campaign (AI Generated)"
+msgstr ""
+
+msgid "Add Contact"
+msgstr ""
+
+msgid "Edit Contact"
+msgstr ""
+
+msgid "No contacts found."
+msgstr ""
+
+msgid "Sync WooCommerce"
+msgstr ""
+
+msgid "Sync Inquiries"
+msgstr ""
+
+msgid "AI Segment"
+msgstr ""
+
+msgid "No log entries yet."
+msgstr ""
+
+msgid "New Sequence"
+msgstr ""
+
+msgid "Edit Sequence"
+msgstr ""
+
+msgid "Contacts"
+msgstr ""
+
+msgid "No custom sequences yet."
+msgstr ""
+
+msgid "Send Test"
+msgstr ""
+
+msgid "View →"
+msgstr ""
+
+msgid "Loading…"
+msgstr ""
+
+msgid "AI Provider Settings"
+msgstr ""
+
+msgid "Email Settings"
+msgstr ""
+
+msgid "System Info"
+msgstr ""
+
+msgid "Fallback Chain:"
+msgstr ""
+
+msgid "CRM API key → SGC Manager Pro sgclabs_ai_call() → WP_Error"
+msgstr ""
+
+msgid "Keys are encrypted with AES-256-CBC before storage."
+msgstr ""
+
+msgid "Get Key ↗"
+msgstr ""
+
+msgid "API Key"
+msgstr ""
+
+msgid "Model"
+msgstr ""
+
+msgid "⚡ Set as Active Provider"
+msgstr ""
+
+msgid "✓ Currently Active"
+msgstr ""
+
+msgid "💾 Save Settings"
+msgstr ""
+
+msgid "🔌 Test Connection"
+msgstr ""
+
+msgid "Key saved"
+msgstr ""
+
+msgid "No key"
+msgstr ""
+
+msgid "From Name"
+msgstr ""
+
+msgid "From Email"
+msgstr ""
+
+msgid "Reply-To Email"
+msgstr ""
+
+msgid "Email Footer Text"
+msgstr ""
+
+msgid "Send Batch Size"
+msgstr ""
+
+msgid "Emails per 5-min cron batch (5–200)"
+msgstr ""
+
+msgid "Weekly Promo Segment"
+msgstr ""
+
+msgid "All Subscribed"
+msgstr ""
+
+msgid "Active Buyers"
+msgstr ""
+
+msgid "Repeat Buyers"
+msgstr ""
+
+msgid "International"
+msgstr ""
+
+msgid "Tracking"
+msgstr ""
+
+msgid "Track email opens (1×1 pixel)"
+msgstr ""
+
+msgid "Track link clicks (redirect)"
+msgstr ""
+
+msgid "Save Email Settings"
+msgstr ""
+
+msgid "Plugin Version"
+msgstr ""
+
+msgid "WordPress"
+msgstr ""
+
+msgid "PHP"
+msgstr ""
+
+msgid "WooCommerce"
+msgstr ""
+
+msgid "SGC Manager Pro"
+msgstr ""
+
+msgid "Active (AI fallback available)"
+msgstr ""
+
+msgid "Not Active"
+msgstr ""
+
+msgid "OpenSSL (encryption)"
+msgstr ""
+
+msgid "Available"
+msgstr ""
+
+msgid "Not Available"
+msgstr ""
+
+msgid "Queue Next Run"
+msgstr ""
+
+msgid "Weekly Promo Next Run"
+msgstr ""

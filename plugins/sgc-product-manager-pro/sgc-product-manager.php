@@ -3,7 +3,7 @@
  * Plugin Name:       SGC Product Manager Pro
  * Plugin URI:        https://labsglass.com/plugins/sgc-product-manager-pro/
  * Description:       All-in-one WooCommerce product suite — AI content engine (DeepSeek/Claude/OpenAI/Gemini), Product Studio, Competitor Intelligence, Automation Engine, B2B Export pricing, Bulk SEO, CSV Importer. Built for international laboratory glassware exporters.
- * Version:           3.0.9
+ * Version:           3.1.0
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Tested up to:      7.0
@@ -35,7 +35,7 @@ defined( 'ABSPATH' ) || exit( 'Direct access not permitted.' );
 if ( defined( 'SGC_PM_VERSION' ) ) return;
 
 // ── Version & Build constants ─────────────────────────────────────────────────
-define( 'SGC_PM_VERSION',    '3.0.9' );
+define( 'SGC_PM_VERSION',    '3.1.0' );
 define( 'SGC_PM_BUILD_DATE', '2026-11-10' );
 define( 'SGC_PM_BUILD_TIME', '18:30' );
 define( 'SGC_PM_BUILD_ID',   '20261110-1830' );
@@ -71,6 +71,7 @@ add_action( 'init', function () {
 /**
  * CHANGELOG (newest first)
  * ─────────────────────────────────────────────────────────────────────────
+ * v3.1.0 — 2026-11-11 — Module Control + automatic safe mode (SGC LABS → Module Control): every module can be switched off; a module that causes a PHP fatal error is switched off automatically
  * v3.0.9 — 2026-11-10 — Stability & ecosystem fixes
  *   ✅ FIX: Competitors tab "Scan All" caused a fatal error (handler was registered but never written) — now queues a background scan
  *   ✅ FIX: Removed a dead duplicate copy of plugin-health-monitor.php (Site Manager owns it; duplicate functions = fatal risk)
@@ -109,8 +110,26 @@ function sgc_pm_woo_check() {
 }
 
 // ── Boot ─────────────────────────────────────────────────────────────────
+// v3.1.0: Module Guard — per-module on/off switches + automatic safe mode (shared with Site Manager)
+require_once SGC_PM_PATH . 'includes/sgc-module-guard.php';
+SGC_Module_Guard::register( 'sgc-product-manager-pro', 'SGC Product Manager Pro', SGC_PM_PATH, [
+    'class-integration'      => 'Ecosystem integration (Invoice Pro / CRM / Site Manager)',
+    'class-seo-export'       => 'Export SEO (schema, breadcrumbs, image ALT)',
+    'class-logger'           => 'Activity logger',
+    'class-ai-engine'        => 'AI engine (DeepSeek / Claude / OpenAI / Gemini)',
+    'class-automation'       => 'Automation rules',
+    'class-competitor-intel' => 'Competitor intelligence',
+    'class-product-table'    => 'Products table',
+    'class-bulk-actions'     => 'Bulk actions',
+    'class-sql-editor'       => 'SQL editor',
+    'class-b2b-export'       => 'B2B export pricing',
+    'class-product-tools'    => 'Product tools',
+    'class-importer'         => 'CSV importer',
+    'class-studio'           => 'Product Studio',
+    'class-admin'            => 'Admin UI',
+], [ 'class-logger', 'class-admin', 'class-integration' ] );
 require_once SGC_PM_PATH . 'includes/class-integration.php';
-require_once SGC_PM_PATH . 'includes/class-seo-export.php'; // v3.0.3: Export SEO — Schema, FAQ, OG, hreflang, sitemap
+if ( SGC_Module_Guard::should_load( 'sgc-product-manager-pro', 'class-seo-export' ) ) require_once SGC_PM_PATH . 'includes/class-seo-export.php'; // v3.0.3: Export SEO — Schema, FAQ, OG, hreflang, sitemap
 
 // ── Auto Updater — class loaded by Manager Pro ───────────────────────────
 add_action( 'plugins_loaded', function () {
@@ -142,6 +161,7 @@ add_action( 'plugins_loaded', function () {
     ];
     foreach ( $files as $f ) {
         $path = SGC_PM_PATH . $f;
+        if ( ! SGC_Module_Guard::should_load( 'sgc-product-manager-pro', SGC_Module_Guard::key_from_path( 'sgc-product-manager-pro', $path ) ) ) continue; // Module Control
         if ( file_exists( $path ) ) require_once $path;
     }
 

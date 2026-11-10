@@ -3,7 +3,7 @@
  * Plugin Name:       SGC Site Manager Pro
  * Plugin URI:        https://labsglass.com/plugins/sgc-site-manager-pro/
  * Description:       Complete SEO, AI & WooCommerce suite for international export businesses — Schema.org, IndexNow, hreflang, GSC, AI content engine, B2B pricing, FAQ generator, country landing pages, rank tracker, performance optimizer. GPL v2.
- * Version:           7.5.1
+ * Version:           7.5.2
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Tested up to:      7.0
@@ -30,12 +30,12 @@ defined( 'ABSPATH' ) || exit( 'Direct access not permitted.' );
 
 // ── Version & Build constants ─────────────────────────────────────────────────
 if ( ! defined( 'SGCLABS_BASE_VERSION' ) ) {
-    define( 'SGCLABS_BASE_VERSION', '7.5.1' );
+    define( 'SGCLABS_BASE_VERSION', '7.5.2' );
     define( 'SGCLABS_BUILD_DATE',   '2026-11-10' );
     define( 'SGCLABS_BUILD_TIME',   '18:30' );
-    define( 'SGCLABS_BUILD_ID',     '20261110-1830' );
-    define( 'SGCLABS_BUILD',        '2026-11-10 18:30 UTC' );
-    define( 'SGCLABS_APP_BUILD_NO', '751-20261110-1830' );  // APP BUILD NO: {version}-{date}-{time}
+    define( 'SGCLABS_BUILD_ID',     '20261110-2300' );
+    define( 'SGCLABS_BUILD',        '2026-11-10 23:00 UTC' );
+    define( 'SGCLABS_APP_BUILD_NO', '752-20261110-2300' );  // APP BUILD NO: {version}-{date}-{time}
     define( 'SGCLABS_MIN_WP',       '6.0' );
     define( 'SGCLABS_MIN_PHP',      '8.0' );
     define( 'SGCLABS_SLUG',         'sgclabs-manager' );
@@ -240,7 +240,11 @@ add_action('admin_init', function() {
 // ============================================================
 
 // Safe include helper to avoid fatal failures if files are missing.
+// v7.5.2: honours SGC LABS → Module Control (a module switched OFF is never included).
 function sgclabs_include_file(string $file) {
+    if ( class_exists( 'SGC_Module_Guard' ) && ! SGC_Module_Guard::should_load( 'sgc-site-manager-pro', SGC_Module_Guard::key_from_path( 'sgc-site-manager-pro', $file ) ) ) {
+        return; // switched off in Module Control (manually or by automatic safe mode)
+    }
     if (file_exists($file)) {
         require_once $file;
     } else {
@@ -366,6 +370,24 @@ function sgclabs_help_box( string $id, string $title, array $steps, array $opts 
     <?php
 }
 
+// ── ★ v7.5.2 MODULE GUARD — per-module on/off switches + automatic safe mode ──────
+require_once SGCLABS_PATH . 'includes/core/sgc-module-guard.php';
+function sgclabs_module_guard_register(): void {
+    $modules = [];
+    foreach ( array_merge( glob( SGCLABS_PATH . 'includes/*.php' ) ?: [], glob( SGCLABS_PATH . 'includes/international/*.php' ) ?: [] ) as $f ) {
+        if ( in_array( basename( $f ), [ 'index.php', 'loader.php' ], true ) ) continue;
+        $key   = preg_replace( '#\.php$#', '', substr( wp_normalize_path( $f ), strlen( wp_normalize_path( SGCLABS_PATH . 'includes/' ) ) ) ); // relative key (register() not called yet)
+        $label = ucwords( str_replace( [ 'class-sgclabs-', 'class-sgc-', 'class-', 'international/', '-' ], [ '', '', '', '🌍 ', ' ' ], $key ) );
+        $modules[ $key ] = $label;
+    }
+    ksort( $modules );
+    SGC_Module_Guard::register( 'sgc-site-manager-pro', 'SGC Site Manager Pro', SGCLABS_PATH, $modules, [
+        'class-sgclabs-module', 'feature-control', 'module-control-bar', 'general-settings', 'ai-provider',
+        'sgc-integration-status', 'plugin-health-monitor', 'auto-repair', 'class-sgc-auto-updater', 'debug-log-protect',
+    ] );
+}
+sgclabs_module_guard_register();
+
 // ── OOP BASE CLASS (must load before any OOP module) ───────
 sgclabs_include_file(SGCLABS_PATH . 'includes/class-sgclabs-module.php');
 
@@ -469,7 +491,7 @@ sgclabs_include_file(SGCLABS_PATH . 'includes/social-share.php');               
 sgclabs_include_file(SGCLABS_PATH . 'includes/b2b-pricing.php');                // ★ B2B Pricing, MOQ & HSN Code (v6.7.1)
 // price-compare.php removed v6.8.7 — old widget not needed
 sgclabs_include_file(SGCLABS_PATH . 'includes/reorder-reminder.php');           // ★ Predictive Reorder Reminder System (v6.7.5)
-sgclabs_include_file(SGCLABS_PATH . 'includes/urgency-widget.php');             // ★ Urgency Widget — Social Proof (v6.8.0)
+sgclabs_include_file(SGCLABS_PATH . 'includes/urgency-widget.php');
 sgclabs_include_file(SGCLABS_PATH . 'includes/bulk-order-table.php');           // ★ Bulk Order Table — VWR Style (v6.8.0)
 sgclabs_include_file(SGCLABS_PATH . 'includes/amazon-arabic.php');              // ★ Amazon Business + Arabic SEO (v6.8.0)
 sgclabs_include_file(SGCLABS_PATH . 'includes/market-compare.php');             // ★ Marketplace Compare Widget (v6.8.0)

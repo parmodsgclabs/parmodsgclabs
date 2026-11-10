@@ -3,7 +3,7 @@
  * Plugin Name:       SGC Invoice & Packlist Pro
  * Plugin URI:        https://labsglass.com/plugins/sgc-invoice-packlist-pro/
  * Description:       Complete B2B export pipeline — Proforma Invoice, Packing List, Payment Register, Kanban Pipeline, Buyer Self-Service Portal, AI Compose, WhatsApp, and CRM sync. Built for international laboratory glassware exporters.
- * Version:           1.9.3
+ * Version:           1.10.0
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Tested up to:      7.0
@@ -28,7 +28,7 @@ defined( 'ABSPATH' ) || exit( 'Direct access not permitted.' );
 if ( defined( 'SGC_IIP_VERSION' ) ) return;
 
 // ── Version & Build constants ─────────────────────────────────────────────────
-define( 'SGC_IIP_VERSION',    '1.9.3' );
+define( 'SGC_IIP_VERSION',    '1.10.0' );
 define( 'SGC_IIP_BUILD_DATE', '2026-11-10' );
 define( 'SGC_IIP_BUILD_TIME', '18:30' );
 define( 'SGC_IIP_BUILD_ID',   '20261110-1830' );
@@ -72,6 +72,7 @@ add_action( 'before_woocommerce_init', function () {
 
 /**
  * Changelog (newest first)
+ * v1.10.0 — 2026-11-11: MODULE CONTROL + automatic safe mode (SGC LABS → Module Control)
  * v1.9.3 — 2026-11-10: STABILITY RELEASE
  *           - FIX fatal: Smart Quote Templates called get_payment_terms()/get_bank_details() that did not exist
  *           - FIX fatal: Buyer Portal + Pipeline reminder called a private email wrapper (SGC_IIP_Email::wrap)
@@ -116,6 +117,31 @@ add_action( 'before_woocommerce_init', function () {
  * v1.0.0 — 2026-04-18: Initial release. Full inquiry pipeline, AI PI, PDF, WhatsApp, pipeline.
  */
 
+// ── Module Guard (v1.10.0): per-module on/off switches + automatic safe mode ─────────
+require_once SGC_IIP_PATH . 'includes/sgc-module-guard.php';
+SGC_Module_Guard::register( 'sgc-invoice-packlist-pro', 'SGC Invoice & Packlist Pro', SGC_IIP_PATH, [
+    'class-db'              => 'Database layer',
+    'class-hooks'           => 'Inquiries core (forms, AJAX, Site Manager sync)',
+    'class-ai'              => 'AI (PI drafts, polish, classify)',
+    'class-currency'        => 'Currency & exchange rates',
+    'class-email'           => 'Email (PI send, auto-reply, compose)',
+    'class-whatsapp'        => 'WhatsApp',
+    'class-gst'             => 'GST engine',
+    'class-country-pricing' => 'Country-wise export pricing',
+    'class-proforma'        => 'Proforma Invoice',
+    'class-packlist'        => 'Packing list',
+    'class-pdf'             => 'PDF engine',
+    'class-pipeline'        => 'Pipeline (Kanban, payments)',
+    'class-followup'        => 'Follow-up & balance reminders',
+    'class-buyer-portal'    => 'Buyer self-service portal',
+    'class-crm-bridge'      => 'CRM bridge',
+    'class-settings'        => 'Settings',
+    'class-automation'      => 'Full automation',
+    'class-templates'       => 'Smart quote templates',
+    'class-inbox'           => 'Email inbox (IMAP)',
+    'class-admin'           => 'Admin UI',
+], [ 'class-db', 'class-hooks', 'class-settings', 'class-admin' ] );
+
 // ── Autoload includes ─────────────────────────────────────────────────────
 add_action( 'plugins_loaded', function () {
     $files = [
@@ -141,6 +167,7 @@ add_action( 'plugins_loaded', function () {
     ];
     foreach ( $files as $f ) {
         $p = SGC_IIP_PATH . $f;
+        if ( ! SGC_Module_Guard::should_load( 'sgc-invoice-packlist-pro', SGC_Module_Guard::key_from_path( 'sgc-invoice-packlist-pro', $p ) ) ) continue; // Module Control
         if ( file_exists( $p ) ) require_once $p;
     }
     if ( is_admin() ) {

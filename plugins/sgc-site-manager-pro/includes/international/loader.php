@@ -26,6 +26,7 @@ $sgc_intl_modules = [
 
 foreach ( $sgc_intl_modules as $sgc_intl_mod ) {
     $sgc_intl_path = $sgc_intl_dir . '/' . $sgc_intl_mod;
+    if ( class_exists( 'SGC_Module_Guard' ) && ! SGC_Module_Guard::should_load( 'sgc-site-manager-pro', 'international/' . substr( $sgc_intl_mod, 0, -4 ) ) ) continue; // Module Control
     if ( file_exists( $sgc_intl_path ) ) {
         require_once $sgc_intl_path;
     }

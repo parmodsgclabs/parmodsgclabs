@@ -5,10 +5,10 @@ Installable zips are in `dist/`, sources in `plugins/`.
 
 | Plugin | Folder | Version | Zip |
 |---|---|---|---|
-| SGC Site Manager Pro | `sgc-site-manager-pro` | 7.5.0 → **7.5.1** | `dist/sgc-site-manager-pro-v7.5.1.zip` |
-| SGC Product Manager Pro | `sgc-product-manager-pro` | 3.0.8 → **3.0.9** | `dist/sgc-product-manager-pro-v3.0.9.zip` |
-| SGC Invoice & Packlist Pro | `sgc-invoice-packlist-pro` | 1.9.2 → **1.9.3** | `dist/sgc-invoice-packlist-pro-v1.9.3.zip` |
-| SGC Smart CRM Pro | `sgc-smart-crm` | 1.1.9 → **1.2.0** | `dist/sgc-smart-crm-v1.2.0.zip` |
+| SGC Site Manager Pro | `sgc-site-manager-pro` | 7.5.0 → **7.5.2** | `dist/sgc-site-manager-pro-v7.5.2.zip` |
+| SGC Product Manager Pro | `sgc-product-manager-pro` | 3.0.8 → **3.1.0** | `dist/sgc-product-manager-pro-v3.1.0.zip` |
+| SGC Invoice & Packlist Pro | `sgc-invoice-packlist-pro` | 1.9.2 → **1.10.0** | `dist/sgc-invoice-packlist-pro-v1.10.0.zip` |
+| SGC Smart CRM Pro | `sgc-smart-crm` | 1.1.9 → **1.3.0** | `dist/sgc-smart-crm-v1.3.0.zip` |
 
 Install order: Site Manager → Product Manager → Invoice & Packlist → Smart CRM. Keep the folder names above
 (the auto-updater and the cross-plugin checks look for these exact slugs).
@@ -101,6 +101,22 @@ Tested in the sandbox with WooCommerce 11.2, Rank Math 1.0.282 and LiteSpeed Cac
 - **LabTechCo theme**: theme-specific CSS fixes are kept behind the existing Site Fixes toggles. Product Manager's
   gallery override (big image + thumbnail strip + lightbox, which fights a theme's own Swiper gallery) is now a
   header switch **Gallery** (default ON = unchanged behaviour; turn OFF if the theme gallery should win).
+
+## Module Control + automatic safe mode (new, all four plugins)
+
+`sgc-module-guard.php` ships inside every plugin (first copy loaded wins). **SGC LABS → Module Control** lists every
+module of all four plugins (119 switches) with an ON/OFF toggle:
+
+- A module switched OFF is never `require`d by PHP, so a faulty module can be isolated without FTP.
+- **Automatic safe mode**: when PHP dies with a fatal error inside a module file, that module is switched off
+  automatically (the fatal is logged with file/line/message, an admin notice explains it, the next request loads
+  without it). Verified in the sandbox: request 1 → 500, request 2 → 200 with the module listed as auto-disabled.
+- **Safe Mode** button switches every optional module of every plugin off (and "Exit Safe Mode" restores the previous
+  switches); **Enable all** resets everything.
+- **Emergency link** (one-time secret URL shown on the page) switches all optional modules off even when wp-admin
+  itself is broken, then redirects to Module Control.
+- Core modules (database layer, admin UI, inquiries core, AI provider, Auto-Repair, Health Monitor …) are locked and
+  always load.
 
 ## One-click self repair
 

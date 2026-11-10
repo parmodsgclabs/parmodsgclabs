@@ -3,7 +3,7 @@
  * Plugin Name:       SGC Smart CRM Pro
  * Plugin URI:        https://labsglass.com
  * Description:       AI-Powered B2B CRM — Contact management, CSV/Excel import, AI segmentation, email campaigns, WooCommerce & inquiry automation, weekly product promos. Standalone AI (Claude/OpenAI/Gemini/DeepSeek) with SGC Manager Pro fallback.
- * Version:           1.2.0
+ * Version:           1.3.0
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Tested up to:      7.0
@@ -36,7 +36,7 @@ if ( defined( 'SGC_CRM_VERSION' ) ) {
  *
  * @since 1.0.0
  */
-define( 'SGC_CRM_VERSION', '1.2.0' );
+define( 'SGC_CRM_VERSION', '1.3.0' );
 define( 'SGC_CRM_BUILD_DATE', '2026-11-10' );
 define( 'SGC_CRM_BUILD_TIME', '18:30' );
 define( 'SGC_CRM_BUILD_ID',   '20261110-1830' );
@@ -147,10 +147,28 @@ if ( ! sgc_crm_meets_requirements() ) {
  * @return void
  */
 function sgc_crm_load( $file ) {
+	if ( class_exists( 'SGC_Module_Guard' ) && ! SGC_Module_Guard::should_load( 'sgc-smart-crm', SGC_Module_Guard::key_from_path( 'sgc-smart-crm', $file ) ) ) {
+		return; // switched off in SGC LABS → Module Control
+	}
 	if ( file_exists( $file ) ) {
 		require_once $file;
 	}
 }
+
+// v1.3.0: Module Guard — per-module on/off switches + automatic safe mode (shared with Site Manager)
+require_once SGC_CRM_PATH . 'includes/sgc-module-guard.php';
+SGC_Module_Guard::register( 'sgc-smart-crm', 'SGC Smart CRM Pro', SGC_CRM_PATH, [
+	'class-crm-db'            => 'Database layer',
+	'class-crm-ai'            => 'AI (campaign & segmentation)',
+	'class-crm-contacts'      => 'Contacts',
+	'class-crm-importer'      => 'CSV / Google import',
+	'class-crm-campaigns'     => 'Email campaigns',
+	'class-crm-sender'        => 'Email sender / queue',
+	'class-crm-automation'    => 'Automation sequences',
+	'class-crm-analytics'     => 'Analytics',
+	'class-crm-product-fetch' => 'WooCommerce product fetch',
+	'class-crm-integration'   => 'Ecosystem integration (Invoice Pro / Site Manager)',
+], [ 'class-crm-db', 'class-crm-contacts' ] );
 
 // Core includes — order matters.
 sgc_crm_load( SGC_CRM_PATH . 'includes/class-crm-db.php' );

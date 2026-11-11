@@ -5,9 +5,9 @@ Installable zips are in `dist/`, sources in `plugins/`.
 
 | Plugin | Folder | Version | Zip |
 |---|---|---|---|
-| SGC Site Manager Pro | `sgc-site-manager-pro` | 7.5.0 → **7.5.3** | `dist/sgc-site-manager-pro-v7.5.3.zip` |
+| SGC Site Manager Pro | `sgc-site-manager-pro` | 7.5.0 → **7.5.4** | `dist/sgc-site-manager-pro-v7.5.4.zip` |
 | SGC Product Manager Pro | `sgc-product-manager-pro` | 3.0.8 → **3.1.0** | `dist/sgc-product-manager-pro-v3.1.0.zip` |
-| SGC Invoice & Packlist Pro | `sgc-invoice-packlist-pro` | 1.9.2 → **1.10.1** | `dist/sgc-invoice-packlist-pro-v1.10.1.zip` |
+| SGC Invoice & Packlist Pro | `sgc-invoice-packlist-pro` | 1.9.2 → **1.10.2** | `dist/sgc-invoice-packlist-pro-v1.10.2.zip` |
 | SGC Smart CRM Pro | `sgc-smart-crm` | 1.1.9 → **1.3.1** | `dist/sgc-smart-crm-v1.3.1.zip` |
 
 Install order: Site Manager → Product Manager → Invoice & Packlist → Smart CRM. Keep the folder names above
@@ -101,6 +101,24 @@ Tested in the sandbox with WooCommerce 11.2, Rank Math 1.0.282 and LiteSpeed Cac
 - **LabTechCo theme**: theme-specific CSS fixes are kept behind the existing Site Fixes toggles. Product Manager's
   gallery override (big image + thumbnail strip + lightbox, which fights a theme's own Swiper gallery) is now a
   header switch **Gallery** (default ON = unchanged behaviour; turn OFF if the theme gallery should win).
+
+## MySQL 8 + Elementor test round (2026-11-11)
+
+A second sandbox was built on **MySQL 8.0.46 in strict SQL mode** (the first one used SQLite) with WooCommerce,
+Storefront (classic theme), LiteSpeed Cache and **Elementor 4.5.0** (PHP side; its JS/CSS cannot be built here).
+Full suite repeated: activation, 127 admin pages/tabs, 397 admin-ajax actions, public endpoints, cron hooks, frontend
+pages, quote-cart browser flow, plus an Elementor-built page containing `[sgclabs_quote_form]`, a product grid and
+`[sgclabs_quote_cart_link]`. Two real bugs only MySQL / a classic theme could reveal were fixed:
+
+- Invoice Pro 1.10.2: column `COMMENT` clauses sat on their own lines in the dbDelta schema, so every upgrade emitted
+  invalid `ALTER TABLE … ADD COLUMN COMMENT …` statements (SQL errors in debug.log on MySQL/MariaDB).
+- Site Manager 7.5.4: on classic themes WordPress exposes the `product` query var as a global **string** during
+  `wp_head`; three head emitters (Lab Tech Specs schema, Arabic meta/hreflang, PDF brochure) called `->get_id()` on
+  it → fatal on product pages whenever Rank Math is not active. A safe `sgclabs_current_product()` helper is used now.
+
+Result: 0 PHP errors and 0 database errors across the suite on MySQL; Elementor admin (editor, templates) and the
+Elementor page work with all four plugins; quote flow on the Elementor page submits and creates the lead. Not tested:
+the LabTechCo theme (not available here) and Elementor's front-end JS (unbuilt source).
 
 ## Quote cart & buyer forms (live-site findings, 2026-11-11)
 

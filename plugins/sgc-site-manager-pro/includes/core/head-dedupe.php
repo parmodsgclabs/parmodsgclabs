@@ -22,6 +22,20 @@ defined( 'ABSPATH' ) || exit;
 
 if ( ! function_exists( 'sgclabs_head_dedupe_start' ) ) :
 
+/**
+ * Current WC_Product, safe inside wp_head on classic themes.
+ * Before the loop WordPress registers the `product` query var as a GLOBAL STRING (the slug),
+ * so `global $product; $product->get_id()` is a fatal error there. (v7.5.4)
+ */
+function sgclabs_current_product() {
+	global $product;
+	if ( $product instanceof WC_Product ) return $product;
+	if ( ! function_exists( 'wc_get_product' ) ) return null;
+	$id = get_queried_object_id();
+	$p  = $id ? wc_get_product( $id ) : null;
+	return $p instanceof WC_Product ? $p : null;
+}
+
 add_action( 'wp_head', 'sgclabs_head_dedupe_start', -10000 );
 add_action( 'wp_head', 'sgclabs_head_dedupe_end', PHP_INT_MAX );
 

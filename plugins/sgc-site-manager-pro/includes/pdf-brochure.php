@@ -201,7 +201,7 @@ function sgclabs_pdf_modal_html() { ?>
 
 function sgclabs_pdf_assets_html() {
     if ( ! is_product() ) return;
-    global $product;
+    $product = function_exists('sgclabs_current_product') ? sgclabs_current_product() : null;
     $pid = $product ? $product->get_id() : ( get_queried_object_id() ?: 0 );
     if ( ! $pid ) return;
 

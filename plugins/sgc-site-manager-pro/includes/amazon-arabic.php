@@ -218,7 +218,7 @@ Use formal Arabic (الفصحى). Include relevant technical lab terms in Arabic
 add_action( 'wp_head', 'sgclabs_arabic_hreflang' );
 function sgclabs_arabic_hreflang() {
     if ( ! is_product() ) return;
-    global $product;
+    $product = sgclabs_current_product();
     if ( ! $product ) return;
 
     $ar_active = get_post_meta( $product->get_id(), '_sgclabs_ar_active', true );
@@ -238,7 +238,7 @@ function sgclabs_arabic_hreflang() {
 add_action( 'wp_head', 'sgclabs_arabic_meta_tags', 5 );
 function sgclabs_arabic_meta_tags() {
     if ( ! is_product() ) return;
-    global $product;
+    $product = sgclabs_current_product();
     if ( ! $product ) return;
 
     $pid       = $product->get_id();

@@ -204,7 +204,7 @@ add_filter('rank_math/json_ld', function($data) {
 add_action('wp_head', function() {
     if (!is_product()) return;
     if (defined('RANK_MATH_VERSION') || defined('WPSEO_VERSION')) return; // merged via rank_math/json_ld above
-    global $product;
+    $product = function_exists('sgclabs_current_product') ? sgclabs_current_product() : null;
     if (!$product) return;
     $pid   = $product->get_id();
     $specs = get_post_meta($pid, '_sgclabs_tech_specs', true) ?: [];

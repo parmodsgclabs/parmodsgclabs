@@ -3,7 +3,7 @@
  * Plugin Name:       SGC Site Manager Pro
  * Plugin URI:        https://labsglass.com/plugins/sgc-site-manager-pro/
  * Description:       Complete SEO, AI & WooCommerce suite for international export businesses — Schema.org, IndexNow, hreflang, GSC, AI content engine, B2B pricing, FAQ generator, country landing pages, rank tracker, performance optimizer. GPL v2.
- * Version:           7.5.3
+ * Version:           7.5.4
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Tested up to:      7.0
@@ -30,12 +30,12 @@ defined( 'ABSPATH' ) || exit( 'Direct access not permitted.' );
 
 // ── Version & Build constants ─────────────────────────────────────────────────
 if ( ! defined( 'SGCLABS_BASE_VERSION' ) ) {
-    define( 'SGCLABS_BASE_VERSION', '7.5.3' );
+    define( 'SGCLABS_BASE_VERSION', '7.5.4' );
     define( 'SGCLABS_BUILD_DATE',   '2026-11-10' );
     define( 'SGCLABS_BUILD_TIME',   '18:30' );
-    define( 'SGCLABS_BUILD_ID',     '20261111-0445' );
-    define( 'SGCLABS_BUILD',        '2026-11-11 04:45 IST' );
-    define( 'SGCLABS_APP_BUILD_NO', '753-20261111-0445' );  // APP BUILD NO: {version}-{date}-{time}
+    define( 'SGCLABS_BUILD_ID',     '20261111-2210' );
+    define( 'SGCLABS_BUILD',        '2026-11-11 22:10 IST' );
+    define( 'SGCLABS_APP_BUILD_NO', '754-20261111-2210' );  // APP BUILD NO: {version}-{date}-{time}
     define( 'SGCLABS_MIN_WP',       '6.0' );
     define( 'SGCLABS_MIN_PHP',      '8.0' );
     define( 'SGCLABS_SLUG',         'sgclabs-manager' );

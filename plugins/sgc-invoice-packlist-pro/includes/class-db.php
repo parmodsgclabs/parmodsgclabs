@@ -31,13 +31,11 @@ class SGC_IIP_DB {
             raw_message     text,
             incoterm        varchar(20)         NOT NULL DEFAULT 'FOB',
             port            varchar(200)        NOT NULL DEFAULT '',
-            status          varchar(30)         NOT NULL DEFAULT 'new'
-                            COMMENT 'new|replied|pi_sent|accepted|advance|won|lost|sample',
+            status          varchar(30)         NOT NULL DEFAULT 'new' COMMENT 'new|replied|pi_sent|accepted|advance|won|lost|sample',
             pipeline_stage  varchar(30)         NOT NULL DEFAULT 'new',
             loss_reason     varchar(100)        DEFAULT NULL,
             health_score    tinyint(3)          NOT NULL DEFAULT 0,
-            buyer_type      varchar(30)         NOT NULL DEFAULT 'unknown'
-                            COMMENT 'oem|bulk|dealer|institution|retail|sample',
+            buyer_type      varchar(30)         NOT NULL DEFAULT 'unknown' COMMENT 'oem|bulk|dealer|institution|retail|sample',
             ai_classified   tinyint(1)          NOT NULL DEFAULT 0,
             returning_buyer tinyint(1)          NOT NULL DEFAULT 0,
             wa_sent         tinyint(1)          NOT NULL DEFAULT 0,
@@ -72,11 +70,9 @@ class SGC_IIP_DB {
             id              bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             inquiry_id      bigint(20) UNSIGNED NOT NULL,
             pi_number       varchar(30)         NOT NULL,
-            pi_type         varchar(20)         NOT NULL DEFAULT 'standard'
-                            COMMENT 'standard|oem|sample|revised|b2b',
+            pi_type         varchar(20)         NOT NULL DEFAULT 'standard' COMMENT 'standard|oem|sample|revised|b2b',
             revision        tinyint(3)          NOT NULL DEFAULT 1,
-            template        varchar(20)         NOT NULL DEFAULT 'navy'
-                            COMMENT 'navy|export|minimal',
+            template        varchar(20)         NOT NULL DEFAULT 'navy' COMMENT 'navy|export|minimal',
             buyer_name      varchar(150)        NOT NULL DEFAULT '',
             buyer_email     varchar(150)        NOT NULL DEFAULT '',
             buyer_company   varchar(200)        NOT NULL DEFAULT '',
@@ -88,8 +84,7 @@ class SGC_IIP_DB {
             ship_to_company varchar(200)        DEFAULT NULL,
             ship_to_address text                COMMENT 'Ship To address (if different)',
             ship_to_same    tinyint(1)          NOT NULL DEFAULT 1 COMMENT '1=same as bill to',
-            payment_method  varchar(30)         NOT NULL DEFAULT 'bank'
-                            COMMENT 'bank|paypal|wise|paypal_wise|upi|bank_upi',
+            payment_method  varchar(30)         NOT NULL DEFAULT 'bank' COMMENT 'bank|paypal|wise|paypal_wise|upi|bank_upi',
             pi_upi_id       varchar(100)        DEFAULT NULL COMMENT 'Per-PI UPI ID override',
             pi_upi_name     varchar(100)        DEFAULT NULL COMMENT 'Per-PI UPI display name',
             pi_upi_qr_url   varchar(500)        DEFAULT NULL COMMENT 'Per-PI custom QR URL',
@@ -113,19 +108,14 @@ class SGC_IIP_DB {
             validity_days   tinyint(3)          NOT NULL DEFAULT 30,
             valid_until     date                DEFAULT NULL,
             notes           text,
-            status          varchar(20)         NOT NULL DEFAULT 'draft'
-                            COMMENT 'draft|sent|accepted|expired|revised|dispatched',
+            status          varchar(20)         NOT NULL DEFAULT 'draft' COMMENT 'draft|sent|accepted|expired|revised|dispatched',
             sent_at         datetime            DEFAULT NULL,
             pdf_path        varchar(500)        DEFAULT NULL,
             accept_token    varchar(64)         DEFAULT NULL,
-            freight_partner varchar(200)        DEFAULT NULL
-                            COMMENT 'Courier/freight company name',
-            tracking_no     varchar(200)        DEFAULT NULL
-                            COMMENT 'Shipment tracking number',
-            tracking_url    varchar(500)        DEFAULT NULL
-                            COMMENT 'Tracking URL',
-            dispatch_date   datetime            DEFAULT NULL
-                            COMMENT 'Date of dispatch',
+            freight_partner varchar(200)        DEFAULT NULL COMMENT 'Courier/freight company name',
+            tracking_no     varchar(200)        DEFAULT NULL COMMENT 'Shipment tracking number',
+            tracking_url    varchar(500)        DEFAULT NULL COMMENT 'Tracking URL',
+            dispatch_date   datetime            DEFAULT NULL COMMENT 'Date of dispatch',
             created_at      datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY     (id),
             KEY inquiry_idx (inquiry_id),
@@ -171,8 +161,7 @@ class SGC_IIP_DB {
             name            varchar(200)        NOT NULL,
             trigger_status  varchar(30)         NOT NULL COMMENT 'pi_sent|new|sample',
             delay_days      tinyint(3)          NOT NULL DEFAULT 3,
-            channel         varchar(20)         NOT NULL DEFAULT 'email'
-                            COMMENT 'email|whatsapp|both',
+            channel         varchar(20)         NOT NULL DEFAULT 'email' COMMENT 'email|whatsapp|both',
             subject         varchar(300)        DEFAULT NULL,
             message         text                NOT NULL,
             status          varchar(20)         NOT NULL DEFAULT 'active',
@@ -216,13 +205,11 @@ class SGC_IIP_DB {
             id              bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             inquiry_id      bigint(20) UNSIGNED NOT NULL,
             pi_id           bigint(20) UNSIGNED DEFAULT NULL,
-            payment_type    varchar(30)         NOT NULL DEFAULT 'advance'
-                            COMMENT 'advance|balance|full|sample|refund|partial',
+            payment_type    varchar(30)         NOT NULL DEFAULT 'advance' COMMENT 'advance|balance|full|sample|refund|partial',
             amount          decimal(14,2)       NOT NULL DEFAULT 0.00,
             currency        varchar(5)          NOT NULL DEFAULT 'USD',
             amount_inr      decimal(14,2)       DEFAULT NULL COMMENT 'INR equivalent at time of payment',
-            method          varchar(30)         NOT NULL DEFAULT 'bank_tt'
-                            COMMENT 'bank_tt|lc|paypal|wise|upi|cash|cheque',
+            method          varchar(30)         NOT NULL DEFAULT 'bank_tt' COMMENT 'bank_tt|lc|paypal|wise|upi|cash|cheque',
             reference_no    varchar(200)        DEFAULT NULL COMMENT 'TT ref / UTR / PayPal txn ID',
             payment_date    date                NOT NULL,
             notes           text                DEFAULT NULL,

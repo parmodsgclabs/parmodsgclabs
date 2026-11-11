@@ -3,7 +3,7 @@
  * Plugin Name:       SGC Invoice & Packlist Pro
  * Plugin URI:        https://labsglass.com/plugins/sgc-invoice-packlist-pro/
  * Description:       Complete B2B export pipeline — Proforma Invoice, Packing List, Payment Register, Kanban Pipeline, Buyer Self-Service Portal, AI Compose, WhatsApp, and CRM sync. Built for international laboratory glassware exporters.
- * Version:           1.10.0
+ * Version:           1.10.1
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Tested up to:      7.0
@@ -28,7 +28,7 @@ defined( 'ABSPATH' ) || exit( 'Direct access not permitted.' );
 if ( defined( 'SGC_IIP_VERSION' ) ) return;
 
 // ── Version & Build constants ─────────────────────────────────────────────────
-define( 'SGC_IIP_VERSION',    '1.10.0' );
+define( 'SGC_IIP_VERSION',    '1.10.1' );
 define( 'SGC_IIP_BUILD_DATE', '2026-11-10' );
 define( 'SGC_IIP_BUILD_TIME', '18:30' );
 define( 'SGC_IIP_BUILD_ID',   '20261110-1830' );
@@ -72,6 +72,8 @@ add_action( 'before_woocommerce_init', function () {
 
 /**
  * Changelog (newest first)
+ * v1.10.1 — 2026-11-11: Quote cart inquiries arrive with one line per product (name, SKU, qty, link) + buyer type;
+ *           auto-reply is sent once per inquiry (Smart CRM AI reply first, template reply only as fallback)
  * v1.10.0 — 2026-11-11: MODULE CONTROL + automatic safe mode (SGC LABS → Module Control)
  * v1.9.3 — 2026-11-10: STABILITY RELEASE
  *           - FIX fatal: Smart Quote Templates called get_payment_terms()/get_bank_details() that did not exist

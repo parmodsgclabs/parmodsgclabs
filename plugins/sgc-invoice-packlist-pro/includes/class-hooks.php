@@ -230,8 +230,10 @@ class SGC_IIP_Hooks {
         // Classify buyer type with AI (async-style — low priority)
         do_action( 'sgc_iip_classify_inquiry', $inquiry_id, $inquiry_data );
 
-        // Send auto-reply
-        if ( get_option( 'sgc_iip_autoreply_email', '1' ) === '1' ) {
+        // Send auto-reply — v1.10.1: skipped when Smart CRM already sent its AI instant reply (shared 10-min lock per email)
+        $ar_key = 'sgc_autoreply_' . md5( strtolower( (string) ( $data['email'] ?? '' ) ) );
+        if ( get_option( 'sgc_iip_autoreply_email', '1' ) === '1' && ! get_transient( $ar_key ) ) {
+            set_transient( $ar_key, 'iip', 10 * MINUTE_IN_SECONDS );
             $sent = SGC_IIP_Email::send_autoreply( $inquiry_data );
             if ( $sent ) {
                 $wpdb->update( SGC_IIP_DB::t('inquiries'), [ 'email_sent' => 1, 'auto_reply_at' => current_time('mysql') ], [ 'id' => $inquiry_id ] ); // phpcs:ignore
@@ -1992,6 +1994,22 @@ class SGC_IIP_Hooks {
         $source_type = $map[ $source ] ?? 'manager_pro';
 
         $qty = sanitize_text_field( (string) ( $meta['qty'] ?? $data['qty'] ?? '' ) );
+        // v1.10.1: one line per product when the form sent a product list (quote cart) — PI builder reads these lines
+        $lines = [];
+        if ( ! empty( $data['products'] ) && is_array( $data['products'] ) ) {
+            foreach ( $data['products'] as $pr ) {
+                if ( empty( $pr['name'] ) ) continue;
+                $lines[] = [
+                    'name'        => sanitize_text_field( $pr['name'] ),
+                    'sku'         => sanitize_text_field( $pr['sku'] ?? '' ),
+                    'qty'         => max( 1, (int) ( $pr['qty'] ?? 1 ) ),
+                    'unit'        => 'pcs',
+                    'product_id'  => (int) ( $pr['id'] ?? 0 ),
+                    'product_url' => esc_url_raw( (string) ( $pr['url'] ?? '' ) ),
+                    'type'        => sanitize_text_field( $meta['qtype'] ?? '' ),
+                ];
+            }
+        }
         $row = [
             'source_type'     => $source_type,
             'source_id'       => (int) ( $data['db_id'] ?? 0 ),
@@ -2003,7 +2021,7 @@ class SGC_IIP_Hooks {
             'incoterm'        => sanitize_text_field( $meta['incoterm'] ?? $data['incoterm'] ?? 'FOB' ),
             'port'            => sanitize_text_field( $meta['port'] ?? $data['port'] ?? '' ),
             'raw_message'     => sanitize_textarea_field( $data['message'] ?? '' ),
-            'product_details' => wp_json_encode( [ [
+            'product_details' => wp_json_encode( $lines ?: [ [
                 'name'        => $product,
                 'qty'         => $qty !== '' ? $qty : 1,
                 'unit'        => 'pcs',

@@ -186,8 +186,11 @@ function sgclabs_automation_crm_sync( array $record ) {
         return; // contact already exists, no duplicate
     }
 
-    // Create new CRM contact
+    // Create new CRM contact (segment from the form's "Who are you?" answer when given)
     $name_parts = explode( ' ', sanitize_text_field( $record['name'] ?? '' ), 2 );
+    $bt  = sanitize_text_field( $record['buyer_type'] ?? ( $record['meta']['buyer_type'] ?? '' ) );
+    $seg = ( $bt && $bt !== 'Not Specified' && class_exists( 'SGC_CRM_Integration' ) && method_exists( 'SGC_CRM_Integration', 'segment_from_buyer_type' ) )
+         ? SGC_CRM_Integration::segment_from_buyer_type( $bt, (string) ( $record['country'] ?? '' ) ) : '';
     $wpdb->insert( $crm_table, array_filter( [
         'first_name'  => $name_parts[0] ?? '',
         'last_name'   => $name_parts[1] ?? '',
@@ -196,7 +199,8 @@ function sgclabs_automation_crm_sync( array $record ) {
         'company'     => sanitize_text_field( $record['company'] ?? '' ),
         'country'     => sanitize_text_field( $record['country'] ?? '' ),
         'source'      => 'inquiry_auto',
-        'tags'        => sanitize_text_field( $record['source'] ?? 'inquiry' ) ?: 'inquiry',
+        'segment'     => $seg,
+        'tags'        => trim( ( sanitize_text_field( $record['source'] ?? 'inquiry' ) ?: 'inquiry' ) . ( $bt && $bt !== 'Not Specified' ? ',' . sanitize_title( $bt ) : '' ) ),
         'notes'       => 'Inquiry: ' . sanitize_text_field( $record['product_title'] ?? $record['subject'] ?? '' ), // v7.5.1: NOT NULL column — insert silently failed without it
         'created_at'  => current_time( 'mysql' ),
         'updated_at'  => current_time( 'mysql' ),

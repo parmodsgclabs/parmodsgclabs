@@ -3,7 +3,7 @@
  * Plugin Name:       SGC Smart CRM Pro
  * Plugin URI:        https://labsglass.com
  * Description:       AI-Powered B2B CRM — Contact management, CSV/Excel import, AI segmentation, email campaigns, WooCommerce & inquiry automation, weekly product promos. Standalone AI (Claude/OpenAI/Gemini/DeepSeek) with SGC Manager Pro fallback.
- * Version:           1.3.0
+ * Version:           1.3.1
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Tested up to:      7.0
@@ -36,7 +36,7 @@ if ( defined( 'SGC_CRM_VERSION' ) ) {
  *
  * @since 1.0.0
  */
-define( 'SGC_CRM_VERSION', '1.3.0' );
+define( 'SGC_CRM_VERSION', '1.3.1' );
 define( 'SGC_CRM_BUILD_DATE', '2026-11-10' );
 define( 'SGC_CRM_BUILD_TIME', '18:30' );
 define( 'SGC_CRM_BUILD_ID',   '20261110-1830' );

@@ -269,37 +269,46 @@ function sgc_uq_migrate() {
 }
 
 /* ============================================================
- * 5. FRONT-END  —  Quote Cart API + Add-to-Quote buttons
+ * 5. FRONT-END  —  Quote Cart API + floating cart + Add-to-Quote buttons
+ *    v7.5.3: FAB on every front-end page (was hidden on many), moved above the
+ *    WhatsApp / floating-quote buttons (it sat on top of them → count invisible),
+ *    items keep the product URL, cross-tab count sync, legacy /request-quote/
+ *    page hydration (cart list + prefill + submit through the unified handler).
  * ============================================================ */
 
-/** Global JS cart API + floating mini-cart, loaded on shop/product pages. */
+/** Global JS cart API + floating mini-cart, loaded on every front-end page. */
 add_action( 'wp_footer', function () {
-	if ( ! function_exists( 'is_woocommerce' ) ) { return; }
-	if ( ! ( is_shop() || is_product_category() || is_product() || is_cart() || is_page() ) ) { return; }
+	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) { return; }
 	$quote_url = esc_url( sgc_uq_form_url() );
+	$ajax      = esc_url( admin_url( 'admin-ajax.php' ) );
 	?>
-	<div id="sgc-uq-fab" style="position:fixed;right:18px;bottom:18px;z-index:9998;display:none;">
+	<div id="sgc-uq-fab" style="position:fixed;right:20px;bottom:160px;z-index:9999;display:none;">
 		<a href="<?php echo $quote_url; ?>" style="display:flex;align-items:center;gap:8px;background:#1a1a2e;color:#fff;text-decoration:none;padding:12px 18px;border-radius:30px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-weight:700;font-size:14px;">
-			🛒 Quote Cart <span id="sgc-uq-fab-count" style="background:#27ae60;border-radius:50%;min-width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;">0</span>
+			🛒 Quote Cart <span id="sgc-uq-fab-count" style="background:#27ae60;border-radius:50%;min-width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;padding:0 6px;">0</span>
 		</a>
 	</div>
 	<script>
 	(function(){
+		var AJAX=<?php echo wp_json_encode( $ajax ); ?>, QUOTE_URL=<?php echo wp_json_encode( $quote_url ); ?>;
 		function get(){try{return JSON.parse(localStorage.getItem('sgclabs_quote_cart')||'[]');}catch(e){return[];}}
-		function set(c){localStorage.setItem('sgclabs_quote_cart',JSON.stringify(c));bubble();}
+		function set(c){localStorage.setItem('sgclabs_quote_cart',JSON.stringify(c));bubble();try{window.dispatchEvent(new CustomEvent('sgc:quotecart',{detail:c}));}catch(e){}}
+		function count(c){var n=0;c.forEach(function(i){n+=parseInt(i.qty)||1;});return n;}
 		function bubble(){
-			var c=get(),n=0;c.forEach(function(i){n+=parseInt(i.qty)||1;});
+			var c=get(),n=count(c);
 			var fab=document.getElementById('sgc-uq-fab'),ct=document.getElementById('sgc-uq-fab-count');
 			if(ct)ct.textContent=n;if(fab)fab.style.display=c.length?'block':'none';
+			// any element with class sgc-uq-count (e.g. header menu badge via [sgclabs_quote_cart_link]) shows the count too
+			Array.prototype.forEach.call(document.querySelectorAll('.sgc-uq-count'),function(el){el.textContent=n;el.style.display=c.length?'':'none';});
 		}
+		window.sgcQuoteCart={get:get,set:set,count:function(){return count(get());},url:QUOTE_URL,ajax:AJAX};
 		// Public API used by product button, quick-view, compare, wishlist
 		window.sgcAddToQuote=function(item){
 			if(!item||!item.id){return;}
 			var c=get(),found=false;
-			c.forEach(function(it){if(String(it.id)===String(item.id)){it.qty=(parseInt(it.qty)||1)+(parseInt(item.qty)||1);found=true;}});
-			if(!found){c.push({id:item.id,name:item.name||'Product',sku:item.sku||'—',price:item.price||'0.00',img:item.img||'',qty:parseInt(item.qty)||1});}
+			c.forEach(function(it){if(String(it.id)===String(item.id)){it.qty=(parseInt(it.qty)||1)+(parseInt(item.qty)||1);if(item.url&&!it.url)it.url=item.url;found=true;}});
+			if(!found){c.push({id:item.id,name:item.name||'Product',sku:item.sku||'—',price:item.price||'0.00',img:item.img||'',url:item.url||'',qty:parseInt(item.qty)||1});}
 			set(c);
-			if(window.sgcUQToast){window.sgcUQToast('✓ Added to Quote Cart');}
+			if(window.sgcUQToast){window.sgcUQToast('✓ Added to Quote Cart ('+count(c)+')');}
 		};
 		window.sgcUQToast=function(t){
 			var d=document.createElement('div');
@@ -313,40 +322,169 @@ add_action( 'wp_footer', function () {
 			var b=e.target.closest('.sgc-add-to-quote');
 			if(!b)return;
 			e.preventDefault();
-			window.sgcAddToQuote({id:b.dataset.id,name:b.dataset.name,sku:b.dataset.sku,price:b.dataset.price,img:b.dataset.img,qty:1});
+			var q=1,qi=b.closest('form,.summary,.product')&&b.closest('form,.summary,.product').querySelector('input.qty');
+			if(qi&&parseInt(qi.value)>0)q=parseInt(qi.value);
+			window.sgcAddToQuote({id:b.dataset.id,name:b.dataset.name,sku:b.dataset.sku,price:b.dataset.price,img:b.dataset.img,url:b.dataset.url,qty:q});
 		});
+		window.addEventListener('storage',function(e){if(e.key==='sgclabs_quote_cart')bubble();});
 		bubble();
+
+		/* ── Legacy page support: a page that still contains the old B2B quote form
+		 *    (#sgc-b2b-quote-form, single "product"/"qty" fields, stale nonce) gets the cart
+		 *    list injected, the fields prefilled, and its submit routed through the unified
+		 *    handler with a fresh nonce — so the old /request-quote/ page keeps working. ── */
+		function hydrateLegacy(){
+			var form=document.getElementById('sgc-b2b-quote-form');
+			if(!form||form.dataset.sgcUqHydrated)return;
+			form.dataset.sgcUqHydrated='1';
+			// "Who are you?" buyer cards of the old page (its own inline script is usually broken by wpautop)
+			var grid=document.querySelector('.sgc-quote-wrap .buyer-grid')||document.querySelector('.buyer-grid');
+			if(grid&&!grid.dataset.sgcUq){grid.dataset.sgcUq='1';grid.addEventListener('click',function(e){
+				var card=e.target.closest('.bt-card');if(!card)return;
+				Array.prototype.forEach.call(grid.querySelectorAll('.bt-card'),function(c){c.classList.remove('active');c.style.borderColor='';c.style.background='';});
+				card.classList.add('active');card.style.borderColor='#7c3aed';card.style.background='#f5f0ff';
+				var type=card.getAttribute('data-type')||'',notice=card.getAttribute('data-notice')||'',company=card.getAttribute('data-company')||'';
+				var h1=document.getElementById('sgc-buyer-type'),h2=document.getElementById('sgc-buyer-type-field');
+				if(h1)h1.value=type;if(h2)h2.value=type;
+				var nb=document.getElementById('sgc-buyer-notice');if(nb){nb.textContent=notice;nb.classList.add('show');nb.style.display='block';}
+				var ci=form.querySelector('[name="company"]');if(ci&&company)ci.placeholder=company;
+			});}
+			var box=document.createElement('div');box.id='sgc-uq-legacy-cart';box.style.cssText='margin:0 0 16px;';
+			form.parentNode.insertBefore(box,form);
+			var prod=form.querySelector('[name="product"]'),qty=form.querySelector('[name="qty"]');
+			function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+			function render(){
+				var c=get();
+				if(!c.length){box.innerHTML='';return;}
+				var h='<div style="border:1px solid #e0e0e0;border-radius:8px;padding:12px 14px;background:#fff"><div style="font-weight:700;color:#1a1a2e;margin-bottom:8px">📦 Products in your Quote Cart ('+count(c)+')</div>';
+				c.forEach(function(it,i){
+					h+='<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid #f0f0f0">'+(it.img?'<img src="'+esc(it.img)+'" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:4px">':'')+
+					   '<div style="flex:1;font-size:14px">'+(it.url?'<a href="'+esc(it.url)+'" target="_blank" rel="noopener" style="font-weight:600">'+esc(it.name)+'</a>':'<strong>'+esc(it.name)+'</strong>')+'<div style="font-size:12px;color:#888">SKU: '+esc(it.sku||'—')+'</div></div>'+
+					   '<input type="number" min="1" value="'+(parseInt(it.qty)||1)+'" data-i="'+i+'" class="sgc-uq-lq" style="width:64px;padding:4px;text-align:center"><button type="button" data-i="'+i+'" class="sgc-uq-lr" style="background:none;border:none;color:#e74c3c;font-size:18px;cursor:pointer">✕</button></div>';
+				});
+				box.innerHTML=h+'</div>';
+				if(prod&&(!prod.value||prod.dataset.sgcAuto==='1')){prod.value=c.map(function(it){return it.name+' (SKU '+(it.sku||'—')+') × '+(parseInt(it.qty)||1)+(it.url?' — '+it.url:'');}).join('\n');prod.dataset.sgcAuto='1';}
+				if(qty&&(!qty.value||qty.dataset.sgcAuto==='1')){qty.value=count(c);qty.dataset.sgcAuto='1';}
+			}
+			box.addEventListener('change',function(e){var t=e.target;if(t.classList.contains('sgc-uq-lq')){var c=get();if(c[t.dataset.i]){c[t.dataset.i].qty=parseInt(t.value)||1;set(c);render();}}});
+			box.addEventListener('click',function(e){var t=e.target;if(t.classList.contains('sgc-uq-lr')){var c=get();c.splice(parseInt(t.dataset.i),1);set(c);render();}});
+			window.addEventListener('sgc:quotecart',render);
+			render();
+			// Submit through the unified handler (fresh nonce → works on cached pages too)
+			function submitViaUnified(e){
+				e.preventDefault();e.stopImmediatePropagation();
+				var v=function(n){var el=form.querySelector('[name="'+n+'"]:not([type=radio]),[name="'+n+'"]:checked');return el?el.value.trim():'';};
+				var name=v('name'),email=v('email'),phone=v('phone'),country=v('country');
+				var msgEl=form.querySelector('#sgc-form-msg,.sgc-form-msg')||(function(){var m=document.createElement('div');m.className='sgc-form-msg';m.style.cssText='padding:10px 14px;border-radius:6px;margin:10px 0;font-size:14px;';form.insertBefore(m,form.firstChild);return m;})();
+				function msg(t,ok){msgEl.style.display='block';msgEl.style.background=ok?'#efe':'#fee';msgEl.style.color=ok?'#155724':'#721c24';msgEl.textContent=t;}
+				if(!name||!email||!phone||!country){return msg('❌ Please fill Name, Email, Phone and Country.',false);}
+				var c=get();
+				if(!c.length){var pv=v('product');if(pv){c=[{id:'m_'+Date.now(),name:pv,sku:'—',qty:parseInt(v('qty'))||1}];}}
+				var btn=form.querySelector('[type=submit],#sgc-submit-btn');if(btn){btn.disabled=true;btn.dataset.t=btn.textContent;btn.textContent='Sending...';}
+				var bt=(document.getElementById('sgc-buyer-type-field')||{}).value||(document.getElementById('sgc-buyer-type')||{}).value||v('buyer_type');var qt=v('query_type');
+				fetch(AJAX,{method:'POST',credentials:'same-origin',body:new URLSearchParams({action:'sgc_uq_nonce'})}).then(function(r){return r.json();}).then(function(n){
+					var body=new URLSearchParams({action:'sgc_uq_submit',nonce:(n&&n.data&&n.data.nonce)||'',rtype:'quote',name:name,email:email,phone:phone,country:country,company:v('company'),incoterm:v('incoterm'),port:v('port'),buyer_type:bt,query_type:qt,message:v('message'),products:JSON.stringify(c)});
+					return fetch(AJAX,{method:'POST',credentials:'same-origin',body:body}).then(function(r){return r.json();});
+				}).then(function(res){
+					if(res&&res.success){localStorage.removeItem('sgclabs_quote_cart');bubble();render();msg('✅ Submitted! Ref: '+res.data.ref+' — we will reply within 24 hours.',true);form.style.opacity='.6';form.style.pointerEvents='none';}
+					else{msg('❌ '+((res&&res.data)||'Error. Please email us directly.'),false);if(btn){btn.disabled=false;btn.textContent=btn.dataset.t;}}
+				}).catch(function(){msg('❌ Network error. Please try again.',false);if(btn){btn.disabled=false;btn.textContent=btn.dataset.t;}});
+			}
+			form.addEventListener('submit',submitViaUnified,true);
+			document.addEventListener('click',function(e){var b=e.target.closest('#sgc-b2b-quote-form [type=submit], #sgc-b2b-quote-form #sgc-submit-btn');if(b)submitViaUnified(e);},true);
+		}
+		if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',hydrateLegacy);}else{hydrateLegacy();}
 	})();
 	</script>
 	<?php
 }, 20 );
 
-/** URL of the quote form page (option, falls back to a [sgclabs_quote_form] page or ?sgc-quote). */
+/** URL of the quote form page (option → page with [sgclabs_quote_form] → auto-created "Quote Cart" page). */
 function sgc_uq_form_url() {
 	$pid = (int) get_option( 'sgc_uq_form_page_id', 0 );
 	if ( $pid && get_post_status( $pid ) === 'publish' ) { return get_permalink( $pid ); }
-	return home_url( '/request-quote/' );
+	$found = sgc_uq_find_form_page();
+	if ( $found ) { return get_permalink( $found ); }
+	return home_url( '/quote-cart/' );
 }
 
-/** Inject an "Add to Quote" button on product pages when the product is quote-enabled.
- *  Hooked on the product summary (not the cart form) so it renders even for
- *  quote-only products whose Add-to-Cart form is hidden. */
-add_action( 'woocommerce_single_product_summary', function () {
-	global $product;
-	if ( ! $product ) { return; }
-	$mode = sgc_uq_product_mode( $product );
-	if ( $mode === 'buy_now' ) { return; } // pure buy-now: no quote button
+/** Find a published page that contains the unified form shortcode (any of its aliases). */
+function sgc_uq_find_form_page(): int {
+	global $wpdb;
+	$ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type='page' AND post_status='publish' AND (post_content LIKE '%[sgclabs_quote_form%' OR post_content LIKE '%[sgclabs_b2b_inquiry_form%' OR post_content LIKE '%[sgc_contact_form%' OR post_content LIKE '%[sgclabs_inquiry_form%') ORDER BY ID ASC LIMIT 5" ); // phpcs:ignore
+	return $ids ? (int) $ids[0] : 0;
+}
+
+/** v7.5.3: make sure a real Quote Cart page exists (so the floating cart never points to a page without the cart). */
+function sgc_uq_ensure_form_page(): int {
+	$pid = (int) get_option( 'sgc_uq_form_page_id', 0 );
+	if ( $pid && get_post_status( $pid ) === 'publish' && has_shortcode( (string) get_post_field( 'post_content', $pid ), 'sgclabs_quote_form' ) ) { return $pid; }
+	$found = sgc_uq_find_form_page();
+	if ( ! $found ) {
+		$found = (int) wp_insert_post( [
+			'post_title'   => 'Quote Cart',
+			'post_name'    => 'quote-cart',
+			'post_status'  => 'publish',
+			'post_type'    => 'page',
+			'post_content' => "<!-- wp:shortcode -->\n[sgclabs_quote_form]\n<!-- /wp:shortcode -->",
+			'comment_status' => 'closed',
+		] );
+	}
+	if ( $found > 0 ) { update_option( 'sgc_uq_form_page_id', $found ); }
+	return max( 0, $found );
+}
+add_action( 'admin_init', function () {
+	if ( get_option( 'sgc_uq_page_checked_v' ) === '753' ) { return; }
+	sgc_uq_ensure_form_page();
+	update_option( 'sgc_uq_page_checked_v', '753', false );
+}, 30 );
+
+/** Fresh nonce for the quote form (pages are often served from LiteSpeed cache; an embedded nonce goes stale). */
+add_action( 'wp_ajax_sgc_uq_nonce', 'sgc_uq_ajax_nonce' );
+add_action( 'wp_ajax_nopriv_sgc_uq_nonce', 'sgc_uq_ajax_nonce' );
+function sgc_uq_ajax_nonce() {
+	nocache_headers();
+	wp_send_json_success( [ 'nonce' => wp_create_nonce( 'sgc_uq_nonce' ) ] );
+}
+
+/** [sgclabs_quote_cart_link] — header/menu link with live count badge. */
+add_shortcode( 'sgclabs_quote_cart_link', function ( $atts ) {
+	$atts = shortcode_atts( [ 'text' => '🛒 Quote Cart' ], (array) $atts );
+	return '<a class="sgc-uq-cart-link" href="' . esc_url( sgc_uq_form_url() ) . '">' . esc_html( $atts['text'] ) . ' <span class="sgc-uq-count" style="display:none;background:#27ae60;color:#fff;border-radius:50%;min-width:20px;height:20px;line-height:20px;text-align:center;font-size:12px;padding:0 5px;">0</span></a>';
+} );
+
+/** Button markup shared by single product + shop loop. */
+function sgc_uq_add_button_html( $product, string $extra_class = '', string $style = '' ): string {
 	$img = '';
 	$iid = $product->get_image_id();
 	if ( $iid ) { $src = wp_get_attachment_image_src( $iid, 'thumbnail' ); $img = $src ? $src[0] : ''; }
-	printf(
-		'<button type="button" class="sgc-add-to-quote button alt" data-id="%s" data-name="%s" data-sku="%s" data-price="%s" data-img="%s" style="margin-top:8px;background:#1a1a2e;">📋 Add to Quote</button>',
+	return sprintf(
+		'<button type="button" class="sgc-add-to-quote button alt %s" data-id="%s" data-name="%s" data-sku="%s" data-price="%s" data-img="%s" data-url="%s" style="%s">📋 Add to Quote</button>',
+		esc_attr( $extra_class ),
 		esc_attr( $product->get_id() ),
 		esc_attr( $product->get_name() ),
 		esc_attr( $product->get_sku() ),
 		esc_attr( $product->get_price() ),
-		esc_attr( $img )
+		esc_attr( $img ),
+		esc_url( get_permalink( $product->get_id() ) ),
+		esc_attr( $style )
 	);
+}
+
+/** Inject an "Add to Quote" button on product pages when the product is quote-enabled. */
+add_action( 'woocommerce_single_product_summary', function () {
+	global $product;
+	if ( ! $product ) { return; }
+	if ( sgc_uq_product_mode( $product ) === 'buy_now' ) { return; } // pure buy-now: no quote button
+	echo sgc_uq_add_button_html( $product, '', 'margin-top:8px;background:#1a1a2e;' ); // phpcs:ignore WordPress.Security.EscapeOutput
+}, 15 );
+
+/** v7.5.3: same button in shop / category loops (quote several products quickly). */
+add_action( 'woocommerce_after_shop_loop_item', function () {
+	global $product;
+	if ( ! $product || get_option( 'sgc_uq_loop_button', '1' ) !== '1' ) { return; }
+	if ( sgc_uq_product_mode( $product ) === 'buy_now' ) { return; }
+	echo sgc_uq_add_button_html( $product, 'sgc-add-to-quote-loop', 'margin-top:6px;background:#1a1a2e;font-size:12px;padding:6px 10px;' ); // phpcs:ignore WordPress.Security.EscapeOutput
 }, 15 );
 
 /* ============================================================
@@ -367,6 +505,15 @@ function sgc_uq_form_shortcode( $atts = [] ) {
 				<label class="sgc-uq-pill"><input type="radio" name="sgc_uq_rtype" value="quote" checked> Product Quote</label>
 				<label class="sgc-uq-pill"><input type="radio" name="sgc_uq_rtype" value="b2b"> Bulk / B2B Order</label>
 				<label class="sgc-uq-pill"><input type="radio" name="sgc_uq_rtype" value="contact"> General Inquiry</label>
+			</div>
+		</div>
+
+		<div class="sgc-uq-rtype" style="margin-top:12px;">
+			<label style="font-weight:600;font-size:13px;color:#333;">Who are you?</label>
+			<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+				<?php foreach ( [ 'Distributor / Dealer' => '🏬', 'Research Lab' => '🔬', 'University / School' => '🎓', 'Hospital / Pharma' => '🏥', 'Industry / QC Lab' => '🏭', 'Glass Blower / OEM' => '💨', 'Individual' => '👤' ] as $bt => $ic ) : ?>
+				<label class="sgc-uq-pill"><input type="radio" name="sgc_uq_btype" value="<?php echo esc_attr( $bt ); ?>"> <?php echo $ic . ' ' . esc_html( $bt ); ?></label>
+				<?php endforeach; ?>
 			</div>
 		</div>
 
@@ -426,7 +573,7 @@ function sgc_uq_form_shortcode( $atts = [] ) {
 		var AJAX='<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>';
 		var NONCE='<?php echo esc_js( wp_create_nonce( 'sgc_uq_nonce' ) ); ?>';
 		function get(){try{return JSON.parse(localStorage.getItem('sgclabs_quote_cart')||'[]');}catch(e){return[];}}
-		function set(c){localStorage.setItem('sgclabs_quote_cart',JSON.stringify(c));render();}
+		function set(c){localStorage.setItem('sgclabs_quote_cart',JSON.stringify(c));render();if(window.sgcQuoteCart){window.sgcQuoteCart.set(c);}}
 		function render(){
 			var c=get(),w=document.getElementById('sgc-uq-cart-items'),em=document.getElementById('sgc-uq-cart-empty');
 			if(!w)return;
@@ -434,7 +581,8 @@ function sgc_uq_form_shortcode( $atts = [] ) {
 			if(em)em.style.display='none';
 			w.innerHTML=c.map(function(it,i){
 				var im=it.img?'<img src="'+it.img+'" alt="">':'<div style="width:46px;height:46px;border-radius:4px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;color:#ccc;">📦</div>';
-				return '<div class="sgc-uq-row">'+im+'<div class="nm">'+(it.name||'Product')+'<div style="font-size:12px;color:#888;font-weight:400;">SKU: '+(it.sku||'—')+'</div></div>'+
+				var nm=it.url?'<a href="'+it.url+'" target="_blank" rel="noopener" style="color:#1a1a2e;text-decoration:underline">'+(it.name||'Product')+'</a>':(it.name||'Product');
+				return '<div class="sgc-uq-row">'+im+'<div class="nm">'+nm+'<div style="font-size:12px;color:#888;font-weight:400;">SKU: '+(it.sku||'—')+'</div></div>'+
 					'<input class="q" type="number" min="1" value="'+(it.qty||1)+'" onchange="sgcUQQty('+i+',this.value)"><button class="rm" onclick="sgcUQRemove('+i+')" title="Remove">✕</button></div>';
 			}).join('');
 		}
@@ -448,6 +596,8 @@ function sgc_uq_form_shortcode( $atts = [] ) {
 			document.getElementById('sgc-uq-mname').value='';document.getElementById('sgc-uq-mqty').value='1';
 		};
 		function rtype(){var r=document.querySelector('input[name="sgc_uq_rtype"]:checked');return r?r.value:'quote';}
+		function btype(){var r=document.querySelector('input[name="sgc_uq_btype"]:checked');return r?r.value:'';}
+		Array.prototype.forEach.call(document.querySelectorAll('.sgc-uq-pill input'),function(r){r.addEventListener('change',function(){Array.prototype.forEach.call(document.querySelectorAll('input[name="'+r.name+'"]'),function(x){x.parentNode.style.background=x.checked?'#1a1a2e':'';x.parentNode.style.color=x.checked?'#fff':'';});});});
 		function syncMode(){
 			var t=rtype(),cart=document.getElementById('sgc-uq-cart-block');
 			if(cart)cart.style.display=(t==='contact')?'none':'block';
@@ -464,8 +614,11 @@ function sgc_uq_form_shortcode( $atts = [] ) {
 			var cart=get();
 			if(t!=='contact'&&!cart.length){return msg('❌ Add at least one product, or switch to General Inquiry.',false);}
 			var btn=document.querySelector('.sgc-uq-submit');btn.disabled=true;btn.textContent='Sending...';
-			(window.jQuery?jQuery.post:function(u,d,cb){var x=new XMLHttpRequest();x.open('POST',u);x.setRequestHeader('Content-Type','application/x-www-form-urlencoded');x.onload=function(){cb(JSON.parse(x.responseText));};x.send(Object.keys(d).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(d[k]);}).join('&'));})(AJAX,{
-				action:'sgc_uq_submit',nonce:NONCE,rtype:t,name:name,email:email,phone:phone,country:country,
+			// v7.5.3: fetch a FRESH nonce first — the one embedded in the page goes stale under page caching (LiteSpeed)
+			var post=function(d,cb){var x=new XMLHttpRequest();x.open('POST',AJAX);x.setRequestHeader('Content-Type','application/x-www-form-urlencoded');x.onload=function(){try{cb(JSON.parse(x.responseText));}catch(e){cb({success:false,data:'Unexpected server response'});}};x.onerror=function(){cb({success:false,data:'Network error'});};x.send(Object.keys(d).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(d[k]);}).join('&'));};
+			post({action:'sgc_uq_nonce'},function(nr){ var fresh=(nr&&nr.success&&nr.data&&nr.data.nonce)?nr.data.nonce:NONCE;
+			post({
+				action:'sgc_uq_submit',nonce:fresh,rtype:t,name:name,email:email,phone:phone,country:country,buyer_type:btype(),query_type:(t==='b2b'?'Bulk / B2B Order':(t==='contact'?'General Inquiry':'Product Quote')),
 				company:document.getElementById('uq_company').value,
 				incoterm:document.getElementById('uq_incoterm').value,
 				port:document.getElementById('uq_port').value,
@@ -481,8 +634,10 @@ function sgc_uq_form_shortcode( $atts = [] ) {
 					msg('❌ '+((res&&res.data)||'Error. Please email sales@labsglass.com'),false);
 					btn.disabled=false;btn.textContent='Submit Request to SGC LABS®';
 				}
-			});
+			}); });
 		};
+		window.addEventListener('sgc:quotecart',render);
+		window.addEventListener('storage',function(e){if(e.key==='sgclabs_quote_cart')render();});
 		syncMode();render();
 	})();
 	</script>
@@ -517,6 +672,10 @@ function sgc_uq_handle_submit() {
 	$incoterm= sanitize_text_field( wp_unslash( $_POST['incoterm'] ?? '' ) );
 	$port    = sanitize_text_field( wp_unslash( $_POST['port'] ?? '' ) );
 	$message = sanitize_textarea_field( wp_unslash( $_POST['message'] ?? '' ) );
+	$buyer_type = sanitize_text_field( wp_unslash( $_POST['buyer_type'] ?? '' ) );   // v7.5.3: "Who are you?"
+	$query_type = sanitize_text_field( wp_unslash( $_POST['query_type'] ?? '' ) );
+	if ( ! $buyer_type || $buyer_type === 'Not Specified' ) { $buyer_type = $company ? 'Business' : 'Not Specified'; }
+	if ( ! $query_type ) { $query_type = [ 'quote' => 'Product Quote', 'b2b' => 'Bulk / B2B Order', 'contact' => 'General Inquiry' ][ $rtype ] ?? ucfirst( $rtype ); }
 
 	if ( ! $name || ! is_email( $email ) || ! $phone || ! $country ) {
 		wp_send_json_error( 'Please fill Name, Email, Phone and Country.' );
@@ -528,18 +687,23 @@ function sgc_uq_handle_submit() {
 	if ( ! is_array( $products ) ) { $products = []; }
 	$clean = [];
 	$names = [];
+	$lines = [];
 	$qty_total = 0;
 	foreach ( $products as $p ) {
 		$pn = sanitize_text_field( $p['name'] ?? '' );
 		if ( ! $pn ) { continue; }
 		$pq = max( 1, (int) ( $p['qty'] ?? 1 ) );
+		$url  = esc_url_raw( (string) ( $p['url'] ?? '' ) );
+		$sku  = sanitize_text_field( $p['sku'] ?? '' );
 		$clean[] = [
 			'id'   => sanitize_text_field( $p['id'] ?? '' ),
 			'name' => $pn,
-			'sku'  => sanitize_text_field( $p['sku'] ?? '' ),
+			'sku'  => $sku,
 			'qty'  => $pq,
+			'url'  => $url,
 		];
-		$names[]    = $pn . ' ×' . $pq;
+		$names[]    = $pn . ( $sku && $sku !== '—' ? ' [' . $sku . ']' : '' ) . ' ×' . $pq;
+		$lines[]    = sprintf( '- %s | SKU: %s | Qty: %d%s', $pn, ( $sku ?: '—' ), $pq, $url ? ' | ' . $url : '' );
 		$qty_total += $pq;
 	}
 	if ( $rtype !== 'contact' && empty( $clean ) ) {
@@ -563,6 +727,7 @@ function sgc_uq_handle_submit() {
 		'product_summary' => mb_substr( $summary, 0, 255 ),
 		'qty'             => (string) $qty_total,
 		'message'         => $message,
+		'buyer_type'      => $buyer_type,
 		'ip'              => $ip,
 		'user_agent'      => sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ?? '' ) ),
 	] );
@@ -579,10 +744,14 @@ function sgc_uq_handle_submit() {
 		'company'    => $company,
 		'country'    => $country,
 		'product'    => $summary,
+		'products'   => $clean,
 		'qty'        => (string) $qty_total,
-		'message'    => $message,
-		'query_type' => ucfirst( $rtype ),
-		'buyer_type' => $company ? 'Business' : 'Not Specified',
+		'message'    => "Buyer type: {$buyer_type} | Query type: {$query_type}\n\n" . $message . ( $lines ? "\n\nProducts:\n" . implode( "\n", $lines ) : '' ),
+		'query_type' => $query_type,
+		'buyer_type' => $buyer_type,
+		'incoterm'   => $incoterm,
+		'port'       => $port,
+		'meta'       => [ 'incoterm' => $incoterm, 'port' => $port, 'qty' => (string) $qty_total, 'buyer_type' => $buyer_type, 'qtype' => $query_type ],
 		'source'     => 'unified_quote',
 		'timestamp'  => current_time( 'mysql' ),
 	];
@@ -594,7 +763,7 @@ function sgc_uq_handle_submit() {
 	wp_mail(
 		$admin,
 		sprintf( '[SGC LABS] New %s — %s (%s)', ucfirst( $rtype ), $name, $country ),
-		"Ref: {$lead['lead_number']}\nName: {$name}\nEmail: {$email}\nPhone: {$phone}\nCompany: {$company}\nCountry: {$country}\nIncoterm: {$incoterm}  Port: {$port}\nProducts: {$summary}\nMessage:\n{$message}"
+		"Ref: {$lead['lead_number']}\nName: {$name}\nEmail: {$email}\nPhone: {$phone}\nCompany: {$company}\nCountry: {$country}\nBuyer type: {$buyer_type}\nQuery type: {$query_type}\nIncoterm: {$incoterm}  Port: {$port}\n\nProducts (" . count( $clean ) . " lines, total qty {$qty_total}):\n" . ( $lines ? implode( "\n", $lines ) : $summary ) . "\n\nMessage:\n{$message}\n\nAdmin: " . admin_url( 'admin.php?page=sgc-uq-leads' )
 	);
 
 	wp_send_json_success( [ 'ref' => $lead['lead_number'], 'id' => $lead['id'] ] );
@@ -670,7 +839,25 @@ function sgc_uq_admin_page() {
 	$where  = $status ? $wpdb->prepare( 'WHERE status = %s', $status ) : '';
 	$rows   = $wpdb->get_results( "SELECT * FROM {$table} {$where} ORDER BY id DESC LIMIT 200", ARRAY_A ); // phpcs:ignore
 	$total  = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" ); // phpcs:ignore
+	if ( isset( $_POST['sgc_uq_page_save'] ) && check_admin_referer( 'sgc_uq_page_save' ) ) {
+		$sel = (int) ( $_POST['sgc_uq_form_page_id'] ?? 0 );
+		if ( $sel === -1 ) { delete_option( 'sgc_uq_form_page_id' ); $sel = sgc_uq_ensure_form_page(); }
+		elseif ( $sel > 0 ) { update_option( 'sgc_uq_form_page_id', $sel ); }
+		update_option( 'sgc_uq_loop_button', isset( $_POST['sgc_uq_loop_button'] ) ? '1' : '0' );
+		echo '<div class="notice notice-success"><p>Quote Cart settings saved.</p></div>';
+	}
 	echo '<div class="wrap"><h1>Quote Leads <span style="font-size:13px;color:#666;">(' . esc_html( $total ) . ' total — unified)</span></h1>';
+	$cur = (int) get_option( 'sgc_uq_form_page_id', 0 );
+	echo '<form method="post" style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:14px 16px;margin:12px 0;max-width:860px">';
+	wp_nonce_field( 'sgc_uq_page_save' );
+	echo '<strong>🛒 Quote Cart page</strong> — the floating "Quote Cart" button and <code>[sgclabs_quote_cart_link]</code> open this page. It must contain <code>[sgclabs_quote_form]</code> (the cart with all added products, qty, SKU and links). Current: <a href="' . esc_url( sgc_uq_form_url() ) . '" target="_blank">' . esc_html( sgc_uq_form_url() ) . '</a><br><br>';
+	echo '<select name="sgc_uq_form_page_id"><option value="-1">— Auto (create/find a page with the shortcode) —</option>';
+	foreach ( get_pages( [ 'post_status' => 'publish', 'number' => 300 ] ) as $pg ) {
+		$has = has_shortcode( (string) $pg->post_content, 'sgclabs_quote_form' ) || has_shortcode( (string) $pg->post_content, 'sgclabs_b2b_inquiry_form' );
+		echo '<option value="' . (int) $pg->ID . '" ' . selected( $cur, $pg->ID, false ) . '>' . esc_html( $pg->post_title ) . ( $has ? ' ✓ has shortcode' : '' ) . '</option>';
+	}
+	echo '</select> &nbsp; <label><input type="checkbox" name="sgc_uq_loop_button" value="1" ' . checked( get_option( 'sgc_uq_loop_button', '1' ), '1', false ) . '> Show "Add to Quote" on shop/category lists too</label> &nbsp; <button class="button button-primary" name="sgc_uq_page_save" value="1">Save</button>';
+	echo '<p style="color:#666;font-size:12px;margin:8px 0 0">Tip: an old page that still holds the previous B2B form (<code>#sgc-b2b-quote-form</code>) keeps working — the cart list is injected above it and its submit is routed through the unified handler.</p></form>';
 	echo '<p><a href="?page=sgc-uq-leads" class="button">All</a> ';
 	foreach ( [ 'new'=>'New','quoted'=>'Quoted','won'=>'Won','lost'=>'Lost' ] as $k=>$lab ) {
 		echo '<a href="?page=sgc-uq-leads&st=' . esc_attr( $k ) . '" class="button">' . esc_html( $lab ) . '</a> ';

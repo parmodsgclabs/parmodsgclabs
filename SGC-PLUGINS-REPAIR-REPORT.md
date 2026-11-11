@@ -5,10 +5,10 @@ Installable zips are in `dist/`, sources in `plugins/`.
 
 | Plugin | Folder | Version | Zip |
 |---|---|---|---|
-| SGC Site Manager Pro | `sgc-site-manager-pro` | 7.5.0 → **7.5.2** | `dist/sgc-site-manager-pro-v7.5.2.zip` |
+| SGC Site Manager Pro | `sgc-site-manager-pro` | 7.5.0 → **7.5.3** | `dist/sgc-site-manager-pro-v7.5.3.zip` |
 | SGC Product Manager Pro | `sgc-product-manager-pro` | 3.0.8 → **3.1.0** | `dist/sgc-product-manager-pro-v3.1.0.zip` |
-| SGC Invoice & Packlist Pro | `sgc-invoice-packlist-pro` | 1.9.2 → **1.10.0** | `dist/sgc-invoice-packlist-pro-v1.10.0.zip` |
-| SGC Smart CRM Pro | `sgc-smart-crm` | 1.1.9 → **1.3.0** | `dist/sgc-smart-crm-v1.3.0.zip` |
+| SGC Invoice & Packlist Pro | `sgc-invoice-packlist-pro` | 1.9.2 → **1.10.1** | `dist/sgc-invoice-packlist-pro-v1.10.1.zip` |
+| SGC Smart CRM Pro | `sgc-smart-crm` | 1.1.9 → **1.3.1** | `dist/sgc-smart-crm-v1.3.1.zip` |
 
 Install order: Site Manager → Product Manager → Invoice & Packlist → Smart CRM. Keep the folder names above
 (the auto-updater and the cross-plugin checks look for these exact slugs).
@@ -101,6 +101,30 @@ Tested in the sandbox with WooCommerce 11.2, Rank Math 1.0.282 and LiteSpeed Cac
 - **LabTechCo theme**: theme-specific CSS fixes are kept behind the existing Site Fixes toggles. Product Manager's
   gallery override (big image + thumbnail strip + lightbox, which fights a theme's own Swiper gallery) is now a
   header switch **Gallery** (default ON = unchanged behaviour; turn OFF if the theme gallery should win).
+
+## Quote cart & buyer forms (live-site findings, 2026-11-11)
+
+Diagnosed against astmglass.com. The floating "Quote Cart" button linked to `/request-quote/`, a page whose content is
+the OLD B2B form pasted as HTML: WordPress `wpautop` inserted `</p>` inside its inline script (SyntaxError), so the
+"Who you are" buyer cards never selected, the form never submitted (and it posted a years-old nonce), and it had no
+cart at all — added products could not appear. The cart counter also sat exactly on top of the WhatsApp button.
+
+Fixes (Site Manager 7.5.3, Invoice Pro 1.10.1, Smart CRM 1.3.1), all verified in a headless browser:
+
+- Quote Cart page is auto-created (`/quote-cart/`, shortcode `[sgclabs_quote_form]`) and selectable under
+  **SGC LABS → Quote Leads**; the floating button and `[sgclabs_quote_cart_link]` open it. It lists every added product
+  with image, **hyperlink, SKU, editable qty**, remove button, manual add, and a "Who are you?" selector.
+- The old `/request-quote/` page keeps working: the plugin injects the cart list above the old form, prefills its
+  product/qty fields, makes the buyer cards selectable, and routes its submit through the unified handler with a fresh
+  nonce (LiteSpeed-safe). Add-to-Quote also appears in shop/category lists; the badge moved above the WhatsApp button.
+- Buyer type + query type reach **Product Inquiry** (Invoice Pro `buyer_type` column + message), the lead, the admin
+  email, and set the CRM segment (dealer / glass_blower / end_user) and tags. Invoice Pro stores one line per product
+  (name, SKU, qty, URL) so the PI builder can use them.
+- Auto-reply: the Smart CRM AI instant reply now fires for **all** forms (it only listened to the unified form before),
+  and Invoice Pro's template reply is sent only when the CRM reply did not go out — exactly one reply per inquiry.
+- Decision on WooCommerce Add-to-Cart vs own button: the catalogue is quote-only ("Price on Request",
+  `woocommerce_is_purchasable` = false), so the custom Add-to-Quote stays; products switched to `buy_now` / `both`
+  in the product editor still get the normal WooCommerce cart.
 
 ## Module Control + automatic safe mode (new, all four plugins)
 

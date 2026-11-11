@@ -126,8 +126,18 @@ class SGC_CRM_Automation {
 			return;
 		}
 
+		// v1.3.1: this now also runs on sgclabs_inquiry_received (reach-us / inquiry / get-a-quote /
+		// B2B forms only fire that hook), so guard against double handling of the same inquiry.
+		$email = strtolower( sanitize_email( is_array( $inquiry_data ) ? ( $inquiry_data['email'] ?? '' ) : '' ) );
+		if ( ! is_email( $email ) ) { return; }
+		$key = 'sgc_crm_inq_seen_' . md5( $email . '|' . ( $inquiry_data['product'] ?? '' ) );
+		if ( get_transient( $key ) ) { return; }
+		set_transient( $key, 1, 10 * MINUTE_IN_SECONDS );
+
 		// ── Instant quote acknowledgement (fires immediately, no cron delay) ──
-		if ( get_option( 'sgc_crm_auto_instant_reply', '1' ) ) {
+		// Shared lock with Invoice Pro's template auto-reply: the buyer gets ONE reply, the AI one when available.
+		if ( get_option( 'sgc_crm_auto_instant_reply', '1' ) && ! get_transient( 'sgc_autoreply_' . md5( $email ) ) ) {
+			set_transient( 'sgc_autoreply_' . md5( $email ), 'crm', 10 * MINUTE_IN_SECONDS );
 			self::send_instant_quote_reply( $inquiry_data );
 		}
 
@@ -280,6 +290,8 @@ class SGC_CRM_Automation {
 	 */
 	private static function ai_generate_email( $type, $first_name, $context ) {
 		$site = 'https://labsglass.com';
+		// v1.3.0: every prompt below is built eagerly — missing keys produced PHP warnings for other email types.
+		$context = array_merge( array( 'country' => '', 'order_number' => '', 'products' => '', 'product' => '', 'qty' => '' ), (array) $context );
 
 		$prompts = array(
 			'quote_instant' => "Write an instant quote-acknowledgement email from SGC LABS® (lab glassware manufacturer, Ambala, India) to '{$first_name}' from {$context['country']}. They submitted a {$context['query_type']} for: {$context['product']}" . ( $context['qty'] ? ", qty: {$context['qty']}" : '' ) . ". Tone: warm, professional B2B. Include: (1) confirm we received their inquiry, (2) our team will respond with a detailed quote within 24 hours, (3) for urgent queries WhatsApp: +91 99964 16935, (4) brief mention of ISO 9001:2015 certification & worldwide export since 2003. CTA button: 'Browse Our Catalogue' → labsglass.com. Max 180 words. Return JSON: {\"subject\":\"...\",\"body\":\"<HTML>\"}",
@@ -969,4 +981,5 @@ SGC_CRM_Automation::register_ajax();
 add_action( 'woocommerce_order_status_processing', array( 'SGC_CRM_Automation', 'on_new_order' ) );
 add_action( 'woocommerce_order_status_completed',  array( 'SGC_CRM_Automation', 'on_new_order' ) );
 add_action( 'sgclabs_inquiry_submitted',           array( 'SGC_CRM_Automation', 'on_new_inquiry' ) );
+add_action( 'sgclabs_inquiry_received',            array( 'SGC_CRM_Automation', 'on_new_inquiry' ), 5 ); // v1.3.1: all Site Manager forms, before Invoice Pro (20)
 add_action( 'sgc_crm_new_contact_added',           array( 'SGC_CRM_Automation', 'on_new_contact' ) );

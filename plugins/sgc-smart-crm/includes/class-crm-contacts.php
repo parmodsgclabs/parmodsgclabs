@@ -1126,14 +1126,20 @@ class SGC_CRM_Contacts {
 
 		$parts    = explode( ' ', trim( $inquiry_data['name'] ?? '' ), 2 );
 		$existing = self::get_by_email( $email );
+		// v1.3.1: segment follows the form's "Who are you?" answer (dealer / glass_blower / end_user …)
+		$buyer_type = sanitize_text_field( $inquiry_data['buyer_type'] ?? ( $inquiry_data['meta']['buyer_type'] ?? '' ) );
+		$country    = sanitize_text_field( $inquiry_data['country'] ?? '' );
+		$segment    = ( $buyer_type && $buyer_type !== 'Not Specified' && class_exists( 'SGC_CRM_Integration' ) )
+			? SGC_CRM_Integration::segment_from_buyer_type( $buyer_type, $country ) : 'warm_lead';
 		$data     = array(
 			'first_name' => sanitize_text_field( $parts[0] ?? '' ),
 			'last_name'  => sanitize_text_field( $parts[1] ?? '' ),
 			'phone'      => sanitize_text_field( $inquiry_data['phone']   ?? '' ),
-			'country'    => sanitize_text_field( $inquiry_data['country'] ?? '' ),
+			'company'    => sanitize_text_field( $inquiry_data['company'] ?? '' ),
+			'country'    => $country,
 			'source'     => 'inquiry',
-			'segment'    => 'warm_lead',
-			'tags'       => 'inquiry',
+			'segment'    => $segment,
+			'tags'       => trim( 'inquiry' . ( $buyer_type && $buyer_type !== 'Not Specified' ? ',' . sanitize_title( $buyer_type ) : '' ) ),
 		);
 
 		if ( ! $existing ) {
@@ -1142,6 +1148,11 @@ class SGC_CRM_Contacts {
 			$contact_id     = self::insert( $data );
 			do_action( 'sgc_crm_new_contact_added', $contact_id );
 		} else {
+			// never downgrade a specific segment back to the generic one
+			if ( 'warm_lead' === $segment && ! in_array( (string) $existing->segment, array( '', 'new_lead', 'warm_lead', 'end_user', 'domestic', 'all' ), true ) ) {
+				unset( $data['segment'] );
+			}
+			if ( empty( $data['company'] ) ) { unset( $data['company'] ); }
 			self::update( (int) $existing->id, $data );
 		}
 	}

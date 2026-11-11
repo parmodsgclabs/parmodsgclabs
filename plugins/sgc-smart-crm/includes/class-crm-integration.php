@@ -48,6 +48,16 @@ class SGC_CRM_Integration {
      * @param string $note   Note written on an existing contact.
      * @return int Contact ID (0 on failure / invalid email).
      */
+
+	/** Map the form's "Who are you?" answer to a CRM segment. */
+	public static function segment_from_buyer_type( string $buyer_type, string $country = '' ): string {
+		$b = strtolower( $buyer_type );
+		if ( preg_match( '/distributor|dealer|reseller|trader|wholesal/', $b ) ) return 'dealer';
+		if ( preg_match( '/glass ?blower|oem|fabricat|workshop/', $b ) ) return 'glass_blower';
+		if ( preg_match( '/lab|research|universit|school|college|hospital|pharma|industr|qc|individual|end user/', $b ) ) return 'end_user';
+		return in_array( strtolower( $country ), [ 'india', 'in', 'bharat' ], true ) ? 'domestic' : 'new_lead';
+	}
+
     public static function upsert_from_inquiry( array $data, string $source, string $note ): int {
         $email = sanitize_email( $data['email'] ?? '' );
         if ( ! is_email( $email ) ) return 0;
@@ -63,11 +73,15 @@ class SGC_CRM_Integration {
         $country = sanitize_text_field( $data['country'] ?? '' );
         $is_dom  = in_array( strtolower( $country ), [ 'india', 'in', 'bharat' ], true );
 
+        $buyer_type = sanitize_text_field( $data['buyer_type'] ?? ( $data['meta']['buyer_type'] ?? '' ) );
         if ( $contact ) {
-            $wpdb->update( $ct, [ // phpcs:ignore
-                'notes'      => $note,
-                'updated_at' => current_time( 'mysql' ),
-            ], [ 'id' => (int) $contact['id'] ] );
+            $upd = [ 'notes' => $note, 'updated_at' => current_time( 'mysql' ) ];
+            // a buyer who now tells us who they are upgrades a generic segment
+            if ( $buyer_type && $buyer_type !== 'Not Specified' ) {
+                $cur = (string) $wpdb->get_var( $wpdb->prepare( "SELECT segment FROM `{$ct}` WHERE id=%d", (int) $contact['id'] ) ); // phpcs:ignore
+                if ( in_array( $cur, [ '', 'end_user', 'new_lead', 'warm_lead', 'domestic', 'all' ], true ) ) $upd['segment'] = self::segment_from_buyer_type( $buyer_type, $country );
+            }
+            $wpdb->update( $ct, $upd, [ 'id' => (int) $contact['id'] ] ); // phpcs:ignore
             return (int) $contact['id'];
         }
 
@@ -79,9 +93,9 @@ class SGC_CRM_Integration {
             'company'       => sanitize_text_field( $data['company'] ?? '' ),
             'phone'         => sanitize_text_field( $data['phone']   ?? '' ),
             'country'       => $country,
-            'segment'       => $is_dom ? 'domestic' : 'new_lead',
+            'segment'       => ( $buyer_type && $buyer_type !== 'Not Specified' ) ? self::segment_from_buyer_type( $buyer_type, $country ) : ( $is_dom ? 'domestic' : 'new_lead' ),
             'source'        => $source,
-            'tags'          => 'inquiry', // NOT NULL column without default — must always be supplied
+            'tags'          => trim( 'inquiry' . ( $buyer_type && $buyer_type !== 'Not Specified' ? ',' . sanitize_title( $buyer_type ) : '' ) ), // NOT NULL column without default — must always be supplied
             'status'        => 'subscribed',
             'ai_score'      => 30,
             'notes'         => 'Inquiry: ' . sanitize_text_field( $data['product'] ?? $data['subject'] ?? '' ),

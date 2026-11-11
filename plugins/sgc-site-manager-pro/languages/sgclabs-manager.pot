@@ -1,0 +1,39 @@
+# SGC LABS® Site Manager Pro — Translation Template
+# Copyright (C) 2024-2026 SGC LABS®
+# This file is distributed under the GPLv2.
+msgid ""
+msgstr ""
+"Project-Id-Version: SGC LABS Site Manager Pro 6.6.0\n"
+"Report-Msgid-Bugs-To: https://labsglass.com\n"
+"POT-Creation-Date: 2026-03-22 12:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: SGC LABS <info@labsglass.com>\n"
+"Language-Team: SGC LABS\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: SGC LABS\n"
+"X-Domain: sgclabs-manager\n"
+
+#: sgclabs-manager.php:5
+msgid "SGC LABS® Site Manager Pro"
+msgstr ""
+
+#: includes/class-sgclabs-shipping-rules.php
+msgid "Shipping Rules"
+msgstr ""
+
+#: includes/class-sgclabs-ai-focus-keywords.php
+msgid "AI Focus Keywords"
+msgstr ""
+
+msgid "Save Changes"
+msgstr ""
+
+msgid "Unauthorized access"
+msgstr ""
+
+msgid "Settings saved."
+msgstr ""

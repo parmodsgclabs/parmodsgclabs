@@ -1,0 +1,140 @@
+/* SGC Product Manager Pro v2.0.0 — Enterprise Styles */
+
+/* ── Base ── */
+*{box-sizing:border-box}
+.sgc-pm-wrap{max-width:1500px;margin:0}
+.sgc-pm-wrap h3{font-size:14px;font-weight:500;margin:0 0 12px;color:inherit}
+
+/* ── Header ── */
+.sgc-pm-header{background:#1a1a2e;color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;border-radius:8px 8px 0 0;margin-bottom:0}
+.sgc-pm-logo{display:flex;align-items:center;gap:12px}
+.sgc-pm-logo-icon{font-size:24px}
+.sgc-pm-logo h1{margin:0;font-size:17px;color:#fff;font-weight:500}
+.sgc-pm-logo>div>span{font-size:11px;color:#9090aa}
+.sgc-pm-header-right{display:flex;align-items:center;gap:16px}
+.sgc-pm-version{background:rgba(255,255,255,.12);padding:3px 10px;border-radius:20px;font-size:11px;color:#ccc}
+
+/* ── Master Toggles in header ── */
+.sgc-pm-master-controls{display:flex;gap:12px;align-items:center}
+.sgc-pm-toggle-wrap{display:flex;align-items:center;gap:6px;cursor:pointer}
+.sgc-pm-toggle-wrap>span{font-size:11px;color:#aaa;white-space:nowrap}
+.sgc-pm-toggle{position:relative;width:36px;height:20px;flex-shrink:0}
+.sgc-pm-toggle input{opacity:0;width:0;height:0;position:absolute}
+.sgc-pm-toggle-slider{position:absolute;inset:0;background:#444;border-radius:20px;transition:.2s;cursor:pointer}
+.sgc-pm-toggle-slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.sgc-pm-toggle input:checked+.sgc-pm-toggle-slider{background:#27ae60}
+.sgc-pm-toggle input:checked+.sgc-pm-toggle-slider:before{transform:translateX(16px)}
+
+/* ── Tabs ── */
+.sgc-pm-tabs{display:flex;gap:0;border-bottom:2px solid #e0e0e0;background:#fafafa;overflow-x:auto;flex-wrap:nowrap}
+.sgc-pm-tab{padding:9px 15px;font-size:12px;color:#666;text-decoration:none;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s;display:block}
+.sgc-pm-tab:hover{color:#1a1a2e;background:#f0f0f0}
+.sgc-pm-tab.active{color:#1a1a2e;font-weight:600;border-bottom-color:#1a1a2e;background:#fff}
+.sgc-pm-content{padding:14px 0}
+
+/* ── Box ── */
+.sgc-pm-box{background:#fff;border:1px solid #e0e0e0;border-radius:6px;padding:16px;margin-bottom:12px}
+
+/* ── KPI Dashboard ── */
+.sgc-pm-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px}
+.sgc-pm-kpi-card{background:#fff;border:1px solid #e8e8e8;border-radius:8px;padding:14px;text-align:center;transition:border-color .15s}
+.sgc-pm-kpi-card:hover{border-color:#1a1a2e}
+.sgc-pm-kpi-icon{font-size:22px;margin-bottom:6px}
+.sgc-pm-kpi-num{font-size:22px;font-weight:600;color:#1a1a2e;line-height:1;margin-bottom:4px}
+.sgc-pm-kpi-label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.3px}
+.sgc-pm-kpi-blue   .sgc-pm-kpi-num{color:#185FA5}
+.sgc-pm-kpi-green  .sgc-pm-kpi-num{color:#27500A}
+.sgc-pm-kpi-red    .sgc-pm-kpi-num{color:#791F1F}
+.sgc-pm-kpi-amber  .sgc-pm-kpi-num{color:#633806}
+.sgc-pm-kpi-gray   .sgc-pm-kpi-num{color:#444441}
+.sgc-pm-kpi-coral  .sgc-pm-kpi-num{color:#712B13}
+
+/* ── Status Table ── */
+.sgc-pm-status-tbl{width:100%;font-size:12px;border-collapse:collapse}
+.sgc-pm-status-tbl td{padding:5px 0;border-bottom:1px solid #f5f5f5}
+.sgc-pm-status-tbl td:first-child{color:#888;width:45%}
+
+/* ── Buttons ── */
+.sgc-pm-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:4px;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;border:1px solid #ddd;background:#fff;color:#333;text-decoration:none;line-height:1.4}
+.sgc-pm-btn:hover:not(:disabled){background:#f0f0f0;border-color:#999}
+.sgc-pm-btn:disabled{opacity:.5;cursor:not-allowed}
+.sgc-pm-btn.primary{background:#1a1a2e;color:#fff;border-color:#1a1a2e}
+.sgc-pm-btn.primary:hover:not(:disabled){background:#2d2d4e}
+.sgc-pm-btn.secondary{background:#fff;color:#555;border-color:#ccc}
+.sgc-pm-btn-sm{padding:3px 8px;font-size:11px;border-radius:3px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#333}
+
+/* ── Inputs / Selects ── */
+.sgc-pm-input{padding:7px 10px;border:1px solid #ddd;border-radius:4px;font-size:12px;font-family:inherit;background:#fff;color:#333}
+.sgc-pm-input:focus{outline:none;border-color:#1a1a2e;box-shadow:0 0 0 3px rgba(26,26,46,.08)}
+.sgc-pm-select{padding:7px 10px;border:1px solid #ddd;border-radius:4px;font-size:12px;background:#fff;color:#333}
+.sgc-pm-select:focus{outline:none;border-color:#1a1a2e}
+.sgc-pm-fg{margin-bottom:12px}
+.sgc-pm-fg label{display:block;font-size:11px;font-weight:600;color:#444;margin-bottom:5px}
+
+/* ── Table ── */
+.sgc-pm-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:auto}
+.sgc-pm-table thead{background:#f8f8f8;border-bottom:2px solid #e8e8e8}
+.sgc-pm-table th{padding:9px 12px;text-align:left;font-size:10px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.sgc-pm-table tbody tr{border-bottom:1px solid #f2f2f2;cursor:pointer;transition:background .1s}
+.sgc-pm-table tbody tr:hover td{background:#fafafa}
+.sgc-pm-table td{padding:8px 12px;color:#333;vertical-align:middle}
+.pm-selected-row td{background:#EBF3FF!important}
+.pm-selected-row:hover td{background:#dbeafe!important}
+.pm-stock-low td:first-child+td{color:#854F0B}
+.pm-stock-out td:first-child+td{color:#791F1F}
+
+/* Inline edit */
+.pm-editable{cursor:text;border-radius:3px;padding:1px 3px}
+.pm-editable:hover{background:#FFF3CD;outline:1px dashed #BA7517}
+.pm-editing{border:1.5px solid #1a1a2e!important;outline:none;border-radius:3px;padding:2px 6px;font-size:12px;min-width:70px;background:#fff;color:#333}
+
+/* ── Badges ── */
+.sgc-pm-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.2px}
+.sgc-pm-badge-green {background:#EAF3DE;color:#27500A}
+.sgc-pm-badge-red   {background:#FCEBEB;color:#791F1F}
+.sgc-pm-badge-amber {background:#FAEEDA;color:#633806}
+.sgc-pm-badge-blue  {background:#E6F1FB;color:#0C447C}
+.sgc-pm-badge-gray  {background:#F1EFE8;color:#444441}
+.sgc-pm-badge-coral {background:#FAECE7;color:#712B13}
+
+/* ── Bulk bar ── */
+#pm-bulk-bar{background:#1a1a2e;color:#fff;border-radius:6px;padding:8px 14px;display:none;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:12px}
+.pm-bulk-btn-sm{padding:3px 9px;font-size:11px;border-radius:3px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:#fff;cursor:pointer;white-space:nowrap}
+.pm-bulk-btn-sm:hover{background:rgba(255,255,255,.22)}
+.pm-bulk-btn-red{background:#791F1F;border-color:#791F1F!important}
+
+/* ── Modal ── */
+.sgc-pm-modal{display:none;position:fixed;z-index:99999;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center}
+.sgc-pm-modal.show{display:flex}
+.sgc-pm-modal-inner{background:#fff;border-radius:8px;width:90%;max-width:520px;box-shadow:0 8px 40px rgba(0,0,0,.2);animation:pmSlide .2s ease}
+@keyframes pmSlide{from{transform:translateY(-24px);opacity:0}to{transform:translateY(0);opacity:1}}
+.sgc-pm-modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #eee}
+.sgc-pm-modal-hdr h3{margin:0;font-size:14px}
+.sgc-pm-modal-hdr button{background:none;border:none;font-size:18px;cursor:pointer;color:#888}
+.sgc-pm-modal-body{padding:18px}
+.sgc-pm-modal-ftr{display:flex;gap:8px;justify-content:flex-end;padding:14px 18px;border-top:1px solid #eee}
+
+/* ── Notice / Flash ── */
+.sgc-pm-notice{padding:10px 14px;border-radius:4px;font-size:12px}
+.sgc-pm-notice.success,.sgc-pm-notice-success{background:#EAF3DE;color:#27500A;border:1px solid #C0DD97}
+.sgc-pm-notice.error,.sgc-pm-notice-error{background:#FCEBEB;color:#791F1F;border:1px solid #F7C1C1}
+#sgc-pm-global-notice{margin:10px 0}
+
+/* ── SQL Editor ── */
+.pm-sql-textarea{width:100%;font-family:monospace;font-size:12px;padding:10px;border:1px solid #ddd;border-radius:4px;resize:vertical;min-height:90px;background:#fafafa;color:#333}
+.pm-sql-textarea:focus{outline:none;border-color:#1a1a2e}
+.pm-tpl-btn{padding:5px 10px;font-size:11px;color:#185FA5;cursor:pointer;border-radius:3px;margin-bottom:2px}
+.pm-tpl-btn:hover{background:#E6F1FB}
+.pm-tbl-btn{padding:4px 8px;font-size:11px;color:#555;cursor:pointer;font-family:monospace}
+.pm-tbl-btn:hover{background:#f5f5f5;color:#1a1a2e}
+
+/* ── Automation ── */
+.cond-row select,.cond-row input{font-size:12px}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .sgc-pm-master-controls{display:none}
+  .sgc-pm-kpi-grid{grid-template-columns:repeat(3,1fr)}
+  .sgc-pm-table{font-size:11px}
+  .sgc-pm-table td,.sgc-pm-table th{padding:6px 8px}
+}

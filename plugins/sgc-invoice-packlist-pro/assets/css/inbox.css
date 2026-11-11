@@ -1,0 +1,70 @@
+/* SGC IIP — Email Inbox styles (v1.9.0) */
+.iip-inbox { --iip-line:#e3e6ec; --iip-blue:#3368C6; --iip-ink:#1a1a2e; }
+.iip-inbox-banner { padding:12px 16px; border-radius:8px; margin:12px 0; font-size:13px; line-height:1.5; }
+.iip-inbox-banner.info { background:#eef4ff; border:1px solid #cfe0ff; color:#1d4e8a; }
+.iip-inbox-banner.warn { background:#fff6e6; border:1px solid #ffe2ad; color:#8a5a00; }
+.iip-inbox-banner code { background:rgba(0,0,0,.06); padding:1px 5px; border-radius:4px; }
+
+.iip-inbox-toolbar { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin:10px 0 12px; }
+.iip-inbox-filters { display:flex; gap:6px; }
+.iip-flt { border:1px solid var(--iip-line); background:#fff; border-radius:20px; padding:5px 14px; font-size:13px; cursor:pointer; }
+.iip-flt.active { background:var(--iip-blue); border-color:var(--iip-blue); color:#fff; }
+.iip-inbox-search { flex:1; min-width:180px; }
+.iip-inbox-search input { width:100%; max-width:340px; padding:7px 12px; border:1px solid var(--iip-line); border-radius:8px; font-size:13px; }
+.iip-inbox-actions { display:flex; align-items:center; gap:10px; }
+.iip-inbox-meta { font-size:12px; color:#888; }
+
+.iip-inbox-grid { display:grid; grid-template-columns:330px 1fr; gap:0; border:1px solid var(--iip-line); border-radius:10px; overflow:hidden; min-height:520px; background:#fff; }
+@media (max-width:900px){ .iip-inbox-grid{ grid-template-columns:1fr; } .iip-inbox-pane.mobile-hide{ display:none; } }
+
+/* List */
+.iip-inbox-list { border-right:1px solid var(--iip-line); overflow-y:auto; max-height:640px; }
+.iip-inbox-loading,.iip-inbox-empty { padding:30px; text-align:center; color:#999; }
+.iip-inbox-empty-ico { font-size:34px; margin-bottom:6px; }
+.iip-conv { display:block; width:100%; text-align:left; border:0; border-bottom:1px solid var(--iip-line); background:#fff; padding:12px 14px; cursor:pointer; }
+.iip-conv:hover { background:#f7f9fc; }
+.iip-conv.active { background:#eef4ff; box-shadow:inset 3px 0 0 var(--iip-blue); }
+.iip-conv.unread .iip-conv-name { font-weight:700; }
+.iip-conv-top { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+.iip-conv-name { font-size:14px; color:var(--iip-ink); }
+.iip-conv-time { font-size:11px; color:#aaa; white-space:nowrap; }
+.iip-conv-sub { font-size:13px; color:#444; margin:3px 0 1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.iip-conv-snip { font-size:12px; color:#999; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.iip-conv-badge { display:inline-block; min-width:18px; text-align:center; background:var(--iip-blue); color:#fff; border-radius:10px; font-size:11px; padding:0 6px; margin-left:6px; }
+
+/* Pane */
+.iip-inbox-pane { overflow-y:auto; max-height:640px; }
+.iip-thread-head { display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid var(--iip-line); position:sticky; top:0; background:#fff; z-index:1; }
+.iip-thread-name { margin:0; font-size:17px; }
+.iip-thread-email { font-size:12px; color:#888; }
+.iip-thread-country { font-size:12px; color:#666; background:#f1f3f8; padding:3px 10px; border-radius:12px; }
+.iip-thread-msgs { padding:16px 20px; }
+.iip-msg { border:1px solid var(--iip-line); border-radius:10px; margin-bottom:14px; overflow:hidden; }
+.iip-msg.out { border-color:#cfe0ff; }
+.iip-msg-meta { display:flex; justify-content:space-between; font-size:12px; padding:8px 14px; background:#f7f9fc; border-bottom:1px solid var(--iip-line); }
+.iip-msg.out .iip-msg-meta { background:#eef4ff; }
+.iip-msg-from { font-weight:600; color:var(--iip-ink); }
+.iip-msg-dir { color:#888; }
+.iip-msg-body { padding:14px 16px; font-size:14px; line-height:1.6; color:#222; word-break:break-word; }
+.iip-msg-body img { max-width:100%; height:auto; }
+.iip-msg-att { font-size:12px; color:#a06000; padding:0 16px 12px; }
+
+/* Reply */
+.iip-reply { border-top:1px solid var(--iip-line); padding:14px 20px 20px; background:#fafbfd; }
+.iip-reply-bar { display:flex; gap:8px; margin-bottom:8px; }
+.iip-reply-subject { flex:1; padding:8px 12px; border:1px solid var(--iip-line); border-radius:8px; font-size:13px; }
+.iip-reply-tools { display:flex; gap:4px; margin-bottom:6px; }
+.iip-reply-tools button { border:1px solid var(--iip-line); background:#fff; border-radius:6px; padding:4px 10px; font-size:13px; cursor:pointer; }
+.iip-reply-editor { min-height:140px; max-height:320px; overflow-y:auto; border:1px solid var(--iip-line); border-radius:8px; padding:12px 14px; background:#fff; font-size:14px; line-height:1.6; }
+.iip-reply-editor:empty:before { content:attr(data-ph); color:#aaa; }
+.iip-reply-foot { display:flex; justify-content:space-between; align-items:center; margin-top:10px; gap:10px; flex-wrap:wrap; }
+.iip-reply-note { font-size:12px; color:#888; }
+
+/* Buttons */
+.iip-inbox .iip-btn { border:1px solid var(--iip-line); background:#fff; border-radius:8px; padding:7px 14px; font-size:13px; cursor:pointer; }
+.iip-inbox .iip-btn:hover { background:#f2f4f8; }
+.iip-inbox .iip-btn.primary { background:var(--iip-blue); border-color:var(--iip-blue); color:#fff; }
+.iip-inbox .iip-btn.primary:hover { filter:brightness(.95); }
+.iip-inbox .iip-btn.ai { background:#f3eaff; border-color:#dcc6ff; color:#5b2ea6; }
+.iip-inbox .iip-btn[disabled] { opacity:.5; cursor:not-allowed; }
+.iip-inbox .iip-btn.loading { opacity:.7; pointer-events:none; }
